@@ -166,16 +166,17 @@ if [ -f "$configfilename" ] ; then
         rmdir $builddir/$lifebaseprefix-$SUBJECT_NAME
     fi
     cp -r $codedir $builddir/$lifebaseprefix-$SUBJECT_NAME
+    mv $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/} $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
     for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE ; do
         u=${s}_UUID
         if [ "${!s}" == "on" ] ; then
             sed -i -e 's;//#define '$u';#define '$u';' \
-                $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/}
+                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
         fi
     done
     for v in ${vars[@]} ; do
         sed -i -e 's;^#define '${v%=*}' .*;#define '${v%=*}' '${v#*=}';' \
-                $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/}
+                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
     done
 fi
 
