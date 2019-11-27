@@ -155,7 +155,7 @@ fi
 
 if [ -f "$configfilename" ] ; then
 
-    vars=( $(awk '/^[_0-9a-zA-Z]**="[-_+#0-9a-zA-Z]*"$/ {print $0}' $configfilename) )
+    vars=( $(awk '/^[_0-9a-zA-Z]**="?[-_+#0-9a-zA-Z]*"?$/ {print $0}' $configfilename) )
 
     for v in ${vars[@]} ; do
         eval $v
