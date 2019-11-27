@@ -19,7 +19,7 @@
 
 // define the time to idle between measurements
 // note: the DHT does not deliver new results faster than every 2s
-#define LOOP_DELAY "{{ LOOP_DELAY }}"
+#define LOOP_DELAY {{ LOOP_DELAY }}
 int loop_delay;
 
 // how long should the pump run each time?
@@ -40,6 +40,8 @@ int loop_delay;
 #define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
+#define SUBJECT_WARN_LED_UUID "{{ SUBJECT_WARN_LED_UUID }}"
+#define SUBJECT_SHOW_LED_UUID "{{ SUBJECT_SHOW_LED_UUID }}"
 
 // system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -47,6 +49,9 @@ int loop_delay;
 #define SUBJECT_UUID "{{ SUBJECT_UUID }}"
 #define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
 #define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
+#define SUBJECT_LED_RED_PIN 12
+#define SUBJECT_LED_RED_PIN 14
+#define SUBJECT_LED_RED_PIN 17
 
 /// measurements/action - #change# uncoment service UUIDs as needed
 ///// light service configuration
@@ -106,6 +111,8 @@ BLECharacteristic* subject_uuid_characteristic = NULL;
 BLECharacteristic* subject_name_characteristic = NULL;
 BLECharacteristic* subject_type_characteristic = NULL;
 BLECharacteristic* subject_type_id_characteristic = NULL;
+BLECharacteristic* subject_warn_characteristic = NULL;
+BLECharacteristic* subject_show_characteristic = NULL;
 #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
 #endif
@@ -189,6 +196,13 @@ static void init_ble() {
     subject_type_id_characteristic = subject_service->createCharacteristic(
             SUBJECT_TYPE_UUID_UUID, BLECharacteristic::PROPERTY_READ
     );
+    subject_show_characteristic = subject_service->createCharacteristic(
+            SUBJECT_WARN_LED_UUID, BLECharacteristic::PROPERTY_READ
+    );
+    subject_show_characteristic = subject_service->createCharacteristic(
+            SUBJECT_SHOW_LED_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE
+    );
 #if defined LIGHT_SERVICE_UUID
     init_ble_light(ble_server);
 #endif
@@ -207,6 +221,8 @@ static void init_ble() {
     subject_name_characteristic->setValue(SUBJECT_NAME);
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
+    subject_warn_characteristic->setValue(0);
+    subject_show_characteristic->setValue(0);
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);
