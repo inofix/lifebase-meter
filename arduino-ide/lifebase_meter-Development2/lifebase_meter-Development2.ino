@@ -15,11 +15,11 @@
 */
 
 // system constants
-#define LB_TAG "{{ LB_TAG }}"
+#define LB_TAG "LifeBaseMeter"
 
 // define the time to idle between measurements
 // note: the DHT does not deliver new results faster than every 2s
-#define LOOP_DELAY {{ LOOP_DELAY }}
+#define LOOP_DELAY 60000
 int loop_delay;
 
 // how long should the pump run each time?
@@ -35,42 +35,37 @@ int loop_delay;
 #define ANALOG_RESOLUTION 16
 
 // subject service
-#define SUBJECT_SERVICE_UUID "{{ SUBJECT_SERVICE_UUID }}"
-#define SUBJECT_NAME_UUID "{{ SUBJECT_NAME_UUID }}"
-#define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
-#define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
-#define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
-#define SUBJECT_WARN_LED_UUID "{{ SUBJECT_WARN_LED_UUID }}"
-#define SUBJECT_SHOW_LED_UUID "{{ SUBJECT_SHOW_LED_UUID }}"
+#define SUBJECT_SERVICE_UUID "54000000-e337-46ca-9690-cdd6d309e7b1"
+#define SUBJECT_NAME_UUID "54000001-e337-46ca-9690-cdd6d309e7b1"
+#define SUBJECT_UUID_UUID "54000002-e337-46ca-9690-cdd6d309e7b1"
+#define SUBJECT_TYPE_NAME_UUID "54000003-e337-46ca-9690-cdd6d309e7b1"
+#define SUBJECT_TYPE_UUID_UUID "54000004-e337-46ca-9690-cdd6d309e7b1"
 
 // system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
-#define SUBJECT_NAME "{{ SUBJECT_NAME }}"
-#define SUBJECT_UUID "{{ SUBJECT_UUID }}"
-#define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
-#define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
-#define SUBJECT_LED_RED_PIN 12
-#define SUBJECT_LED_RED_PIN 14
-#define SUBJECT_LED_RED_PIN 17
+#define SUBJECT_NAME "Development2"
+#define SUBJECT_UUID "ba69050a-a47c-490b-a79c-9f4209126dc4"
+#define SUBJECT_TYPE_NAME "Development"
+#define SUBJECT_TYPE_UUID "b939ef7a-94f6-4e2a-8bf6-0e06588532c1"
 
 /// measurements/action - #change# uncoment service UUIDs as needed
 ///// light service configuration
-//#define LIGHT_SERVICE_UUID "{{ LIGHT_SERVICE_UUID }}"
+#define LIGHT_SERVICE_UUID "54010000-e337-46ca-9690-cdd6d309e7b1"
 #if defined LIGHT_SERVICE_UUID
 ///// light sensor includes
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2561_U.h>
 //#include <Adafruit_TSL2591_U.h>
-#define LIGHT_EXPOSURE_UUID "{{ LIGHT_EXPOSURE_UUID }}"
+#define LIGHT_EXPOSURE_UUID "54010001-e337-46ca-9690-cdd6d309e7b1"
 #define LIGHT_EXPOSURE_I2C_UID 1
 #endif
 
 //// air service configuration
-//#define AIR_SERVICE_UUID "{{ AIR_SERVICE_UUID }}"
+#define AIR_SERVICE_UUID "54020000-e337-46ca-9690-cdd6d309e7b1"
 #if defined AIR_SERVICE_UUID
-#define AIR_TEMPERATURE_UUID "{{ AIR_TEMPERATURE_UUID }}"
-#define AIR_HUMIDITY_UUID "{{ AIR_HUMIDITY_UUID }}"
+#define AIR_TEMPERATURE_UUID "2a6e"
+#define AIR_HUMIDITY_UUID "2a6f"
 ///// air sensor includes
 #include <DHT_U.h>
 ///// air sensor constants
@@ -80,22 +75,22 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #endif
 
 //// water service configuration
-//#define WATER_SERVICE_UUID "{{ WATER_SERVICE_UUID }}"
+#define WATER_SERVICE_UUID "54030000-e337-46ca-9690-cdd6d309e7b1"
 #if defined WATER_SERVICE_UUID
-#define WATER_CACHEPOT_LEVEL_MIN_UUID "{{ WATER_CACHEPOT_LEVEL_MIN_UUID }}"
+#define WATER_CACHEPOT_LEVEL_MIN_UUID "54030001-e337-46ca-9690-cdd6d309e7b1"
 #define WATERCACHEPOTLEVELMINPIN 4
-#define WATER_CACHEPOT_LEVEL_MAX_UUID "{{ WATER_CACHEPOT_LEVEL_MAX_UUID }}"
+#define WATER_CACHEPOT_LEVEL_MAX_UUID "54030002-e337-46ca-9690-cdd6d309e7b1"
 #define WATERCACHEPOTLEVELMAXPIN 15
-#define WATER_PUMP_UUID "{{ WATER_PUMP_UUID }}"
+#define WATER_PUMP_UUID "54030003-e337-46ca-9690-cdd6d309e7b1"
 #define WATERPUMPPIN 2
 #endif
 
 //#define SOIL_SERVICE_UUID "{{ SOIL_SERVICE_UUID }}"
 #if defined SOIL_SERVICE_UUID
-#define SOIL_MOISTURE_UUID "{{ SOIL_MOISTURE_UUID }}"
+#define SOIL_MOISTURE_UUID "54040001-e337-46ca-9690-cdd6d309e7b1"
 #define SOILMOISTUREPIN 32
-#define SOIL_MOISTURE_MIN_UUID "{{ SOIL_MOISTURE_MIN_UUID }}"
-#define SOIL_MOISTURE_MAX_UUID "{{ SOIL_MOISTURE_MAX_UUID }}"
+#define SOIL_MOISTURE_MIN_UUID "54040002-e337-46ca-9690-cdd6d309e7b1"
+#define SOIL_MOISTURE_MAX_UUID "54040003-e337-46ca-9690-cdd6d309e7b1"
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
@@ -111,8 +106,6 @@ BLECharacteristic* subject_uuid_characteristic = NULL;
 BLECharacteristic* subject_name_characteristic = NULL;
 BLECharacteristic* subject_type_characteristic = NULL;
 BLECharacteristic* subject_type_id_characteristic = NULL;
-BLECharacteristic* subject_warn_characteristic = NULL;
-BLECharacteristic* subject_show_characteristic = NULL;
 #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
 #endif
@@ -136,8 +129,8 @@ uint32_t value = 0;
 
 // used by both soil and water service together to control
 // pumps/valves
-int water_flow_force_stop = 0;
-int water_flow_start = 0;
+bool is_too_wet = false;
+bool is_too_dry = false;
 
 static void init_sensors() {
 
@@ -196,13 +189,6 @@ static void init_ble() {
     subject_type_id_characteristic = subject_service->createCharacteristic(
             SUBJECT_TYPE_UUID_UUID, BLECharacteristic::PROPERTY_READ
     );
-    subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_WARN_LED_UUID, BLECharacteristic::PROPERTY_READ
-    );
-    subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_SHOW_LED_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE
-    );
 #if defined LIGHT_SERVICE_UUID
     init_ble_light(ble_server);
 #endif
@@ -221,8 +207,6 @@ static void init_ble() {
     subject_name_characteristic->setValue(SUBJECT_NAME);
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
-    subject_warn_characteristic->setValue(0);
-    subject_show_characteristic->setValue(0);
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);

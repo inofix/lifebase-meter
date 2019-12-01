@@ -76,14 +76,10 @@ static void init_ble_soil(BLEServer* ble_server) {
     soil_service->start();
 }
 
-bool is_too_wet = false;
-bool is_too_dry = false;
-
 static int read_soil_moisture_percentage(int PIN) {
 
     int i = (100 - (analogRead(SOILMOISTUREPIN) - SOIL_MOISTURE_ABSOLUTE_MAX) *
             100 / (SOIL_MOISTURE_ABSOLUTE_MIN - SOIL_MOISTURE_ABSOLUTE_MAX));
-//TODO: use warn and crit threshhold finally..
 
     soil_moisture_min = strtol(
             soil_moisture_min_characteristic->getValue().c_str(), NULL, 10);
@@ -92,38 +88,25 @@ static int read_soil_moisture_percentage(int PIN) {
 
     if (0 < soil_moisture_min < soil_moisture_max < 100) {
         if (i < soil_moisture_min) {
-            if (!is_too_dry) {
-                water_flow_start++;
-                is_too_dry = true;
+            if (i < 0) {
+                i = 0;
             }
-            if (is_too_wet) {
-                water_flow_force_stop--;
-                is_too_wet = false;
-            }
+            is_too_dry = true;
+            is_too_wet = false;
         } else if (i > soil_moisture_max) {
-            if (!is_too_wet) {
-                water_flow_force_stop++;
-                is_too_wet = true;
-            }
-            if (is_too_dry) {
-                water_flow_start--;
-                is_too_dry = false;
-            }
+            is_too_wet = true;
+            is_too_dry = false;
         } else {
-            if (is_too_wet) {
-                water_flow_force_stop--;
-                is_too_wet = false;
-            }
-            if (is_too_dry) {
-                water_flow_start--;
-                is_too_dry = false;
-            }
+            is_too_wet = false;
+            is_too_dry = false;
         }
     } else {
         soil_moisture_min = 0;
         soil_moisture_max = 100;
         set_ble_characteristic(soil_moisture_min_characteristic, "0");
         set_ble_characteristic(soil_moisture_max_characteristic, "100");
+        is_too_wet = false;
+        is_too_dry = false;
     }
     return i;
 }

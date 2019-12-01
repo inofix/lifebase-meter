@@ -56,9 +56,9 @@ static void init_ble_water(BLEServer* ble_server) {
 
 static void pump_water() {
 
-    if (water_flow_start > 0) {
+    if (is_too_dry) {
         for (int i = 0; i < PUMP_ON_COUNT; i++) {
-            if (water_flow_force_stop == 0) {
+            if (!is_too_wet) {
                 digitalWrite(WATERPUMPPIN, HIGH);
                 set_ble_characteristic(water_pump_characteristic, "0");
                 Serial.println("Pump is on...");
