@@ -42,12 +42,16 @@
 //TODO: authentication needed
 //..
 // default minimum of soil moisture (or when to water / warn / etc.)
-int soil_moisture_min = 0;
-char soil_moisture_min_chars[3];
+int soil_moisture_min_crit = 0;
+char soil_moisture_min_crit_chars[3];
+int soil_moisture_min_warn = 0;
+char soil_moisture_min_warn_chars[3];
 // default maximum of soil moisture (or when to stop watering or open valve
 // / warn / etc.)
-int soil_moisture_max = 100;
-char soil_moisture_max_chars[3];
+int soil_moisture_max_warn = 100;
+char soil_moisture_max_warn_chars[3];
+int soil_moisture_max_crit = 100;
+char soil_moisture_max_crit_chars[3];
 
 static void init_soil() {
 
@@ -61,23 +65,39 @@ static void init_ble_soil(BLEServer* ble_server) {
             SOIL_MOISTURE_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    soil_moisture_min_characteristic = soil_service->createCharacteristic(
-            SOIL_MOISTURE_MIN_UUID, BLECharacteristic::PROPERTY_READ |
+    soil_moisture_min_crit_characteristic = soil_service->createCharacteristic(
+            SOIL_MOISTURE_MIN_CRIT_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    soil_moisture_max_characteristic = soil_service->createCharacteristic(
-            SOIL_MOISTURE_MAX_UUID, BLECharacteristic::PROPERTY_READ |
+    soil_moisture_min_warn_characteristic = soil_service->createCharacteristic(
+            SOIL_MOISTURE_MIN_WARN_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    dtostrf(soil_moisture_min, 3, 0, soil_moisture_min_chars);
-    soil_moisture_min_characteristic->setValue(soil_moisture_min_chars);
-    dtostrf(soil_moisture_max, 3, 0, soil_moisture_max_chars);
-    soil_moisture_max_characteristic->setValue(soil_moisture_max_chars);
+    soil_moisture_max_warn_characteristic = soil_service->createCharacteristic(
+            SOIL_MOISTURE_MAX_WARN_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_NOTIFY
+    );
+    soil_moisture_max_crit_characteristic = soil_service->createCharacteristic(
+            SOIL_MOISTURE_MAX_CRIT_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_NOTIFY
+    );
+    dtostrf(soil_moisture_min_crit, 3, 0, soil_moisture_min_crit_chars);
+    soil_moisture_min_crit_characteristic->setValue(soil_moisture_min_crit_chars);
+    dtostrf(soil_moisture_min_warn, 3, 0, soil_moisture_min_warn_chars);
+    soil_moisture_min_warn_characteristic->setValue(soil_moisture_min_warn_chars);
+    dtostrf(soil_moisture_max_warn, 3, 0, soil_moisture_max_warn_chars);
+    soil_moisture_max_warn_characteristic->setValue(soil_moisture_max_warn_chars);
+    dtostrf(soil_moisture_max_crit, 3, 0, soil_moisture_max_crit_chars);
+    soil_moisture_max_crit_characteristic->setValue(soil_moisture_max_crit_chars);
     soil_moisture_characteristic->addDescriptor(new BLE2902());
-    soil_moisture_min_characteristic->addDescriptor(new BLE2902());
-    soil_moisture_max_characteristic->addDescriptor(new BLE2902());
+    soil_moisture_min_crit_characteristic->addDescriptor(new BLE2902());
+    soil_moisture_min_warn_characteristic->addDescriptor(new BLE2902());
+    soil_moisture_max_warn_characteristic->addDescriptor(new BLE2902());
+    soil_moisture_max_crit_characteristic->addDescriptor(new BLE2902());
     soil_service->start();
 }
 
@@ -88,15 +108,14 @@ static int read_soil_moisture_percentage(int PIN) {
 
     int i = (100 - (analogRead(SOILMOISTUREPIN) - SOIL_MOISTURE_ABSOLUTE_MAX) *
             100 / (SOIL_MOISTURE_ABSOLUTE_MIN - SOIL_MOISTURE_ABSOLUTE_MAX));
-//TODO: use warn and crit threshhold finally..
 
-    soil_moisture_min = strtol(
-            soil_moisture_min_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_max = strtol(
+    soil_moisture_min_warn = strtol(
+            soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
+    soil_moisture_max_warn = strtol(
             soil_moisture_max_characteristic->getValue().c_str(), NULL, 10);
 
-    if (0 < soil_moisture_min < soil_moisture_max < 100) {
-        if (i < soil_moisture_min) {
+    if (0 < soil_moisture_min_warn < soil_moisture_max_warn < 100) {
+        if (i < soil_moisture_min_warn) {
             if (!is_too_dry) {
                 water_flow_start++;
                 is_too_dry = true;
@@ -105,7 +124,7 @@ static int read_soil_moisture_percentage(int PIN) {
                 water_flow_force_stop--;
                 is_too_wet = false;
             }
-        } else if (i > soil_moisture_max) {
+        } else if (i > soil_moisture_max_warn) {
             if (!is_too_wet) {
                 water_flow_force_stop++;
                 is_too_wet = true;
@@ -125,10 +144,10 @@ static int read_soil_moisture_percentage(int PIN) {
             }
         }
     } else {
-        soil_moisture_min = 0;
-        soil_moisture_max = 100;
-        set_ble_characteristic(soil_moisture_min_characteristic, "0");
-        set_ble_characteristic(soil_moisture_max_characteristic, "100");
+        set_ble_characteristic(soil_moisture_min_crit_characteristic, "0");
+        set_ble_characteristic(soil_moisture_min_warn_characteristic, "0");
+        set_ble_characteristic(soil_moisture_max_warn_characteristic, "100");
+        set_ble_characteristic(soil_moisture_max_crit_characteristic, "100");
     }
     return i;
 }
