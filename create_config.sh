@@ -21,6 +21,7 @@ lightservce="on"
 airservice="on"
 waterservice="on"
 soilservice="on"
+extraservice="off"
 
 # helper vars
 subject=()
@@ -43,28 +44,35 @@ fi
 
 for s in $@ ; do
     case $1 in
-#*      -a/-A               turn airservice on/off
+#*      -a/-A               turn airservice (on)/off
         -a)
             airservice="on"
         ;;
         -A)
             airservice="off"
         ;;
-#*      -l/-L               turn lightservice on/off
+#*      -e|-E               turn extraservice on/(off)
+        -e)
+            extraservice="on"
+        ;;
+        -A)
+            extraservice="off"
+        ;;
+#*      -l/-L               turn lightservice (on)/off
         -l)
             lightservice="on"
         ;;
         -L)
             lightservice="off"
         ;;
-#*      -s/-S               turn waterservice on/off
+#*      -s/-S               turn waterservice (on)/off
         -s)
             soilservice="on"
         ;;
         -S)
             soilservice="off"
         ;;
-#*      -w/-W               turn waterservice on/off
+#*      -w/-W               turn waterservice (on)/off
         -w)
             waterservice="on"
         ;;
@@ -150,6 +158,7 @@ else
             -e 's/AIR_SERVICE=""/AIR_SERVICE="'$airservice'"/' \
             -e 's/WATER_SERVICE=""/WATER_SERVICE="'$waterservice'"/' \
             -e 's/SOIL_SERVICE=""/SOIL_SERVICE="'$soilservice'"/' \
+            -e 's/EXTRA_SERVICE=""/EXTRA_SERVICE="'$extraservice'"/' \
                 $configexamplename > $configfilename
 fi
 
@@ -167,7 +176,7 @@ if [ -f "$configfilename" ] ; then
     fi
     cp -r $codedir $builddir/$lifebaseprefix-$SUBJECT_NAME
     mv $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/} $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
-    for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE ; do
+    for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE EXTRA_SERVICE ; do
         u=${s}_UUID
         if [ "${!s}" == "on" ] ; then
             sed -i -e 's;//#define '$u';#define '$u';' \
