@@ -10,6 +10,11 @@
     - https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/
     - https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
 
+    BLE specs can be found here:
+
+    - https://www.bluetooth.com/specifications/gatt/characteristics/
+    - https://www.bluetooth.com/specifications/assigned-numbers/units/
+
     For copyright and/or -left, warranty, terms of use, and such information,
     please have a look at the LICENSE file in the topmost directory...
 */

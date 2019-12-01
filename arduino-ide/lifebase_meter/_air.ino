@@ -10,6 +10,11 @@
     - https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/
     - https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
 
+    BLE specs can be found here:
+
+    - https://www.bluetooth.com/specifications/gatt/characteristics/
+    - https://www.bluetooth.com/specifications/assigned-numbers/units/
+
     For copyright and/or -left, warranty, terms of use, and such information,
     please have a look at the LICENSE file in the topmost directory...
 */
@@ -23,6 +28,7 @@ static void init_air() {
 
 static void init_ble_air(BLEServer* ble_server) {
 
+    // https://www.bluetooth.com/specifications/gatt/characteristics/
     BLEService *air_service = ble_server->createService(AIR_SERVICE_UUID);
     air_temperature_characteristic = air_service->createCharacteristic(
             AIR_TEMPERATURE_UUID, BLECharacteristic::PROPERTY_READ |
@@ -34,8 +40,7 @@ static void init_ble_air(BLEServer* ble_server) {
     );
     air_temperature_characteristic->addDescriptor(new BLE2902());
     air_humidity_characteristic->addDescriptor(new BLE2902());
-    // https://www.bluetooth.com/specifications/gatt/characteristics/
-    // -> https://www.bluetooth.com/specifications/assigned-numbers/units/
+    // https://www.bluetooth.com/specifications/assigned-numbers/units/
     BLE2904 *desc0 = new BLE2904();
     desc0->setFormat(BLE2904::FORMAT_UINT8);
     desc0->setUnit(0x272F); // celcius
