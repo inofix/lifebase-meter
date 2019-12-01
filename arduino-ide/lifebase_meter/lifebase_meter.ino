@@ -40,8 +40,8 @@ int loop_delay;
 #define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
-#define SUBJECT_WARN_LED_UUID "{{ SUBJECT_WARN_LED_UUID }}"
-#define SUBJECT_SHOW_LED_UUID "{{ SUBJECT_SHOW_LED_UUID }}"
+#define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
+#define SUBJECT_LED_SHOW_UUID "{{ SUBJECT_LED_SHOW_UUID }}"
 
 // system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -82,11 +82,11 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 //// water service configuration
 //#define WATER_SERVICE_UUID "{{ WATER_SERVICE_UUID }}"
 #if defined WATER_SERVICE_UUID
-#define WATER_CACHEPOT_LEVEL_MIN_UUID "{{ WATER_CACHEPOT_LEVEL_MIN_UUID }}"
-#define WATERCACHEPOTLEVELMINPIN 4
-#define WATER_CACHEPOT_LEVEL_MAX_UUID "{{ WATER_CACHEPOT_LEVEL_MAX_UUID }}"
-#define WATERCACHEPOTLEVELMAXPIN 15
-#define WATER_PUMP_UUID "{{ WATER_PUMP_UUID }}"
+#define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
+#define WATERCONTAINERLEVELMINPIN 4
+#define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
+#define WATERCONTAINERLEVELMAXPIN 15
+#define WATER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
 #define WATERPUMPPIN 2
 #endif
 
@@ -121,8 +121,8 @@ BLECharacteristic* air_temperature_characteristic = NULL;
 BLECharacteristic* air_humidity_characteristic = NULL;
 #endif
 #if defined WATER_SERVICE_UUID
-BLECharacteristic* water_cachepot_level_min_characteristic = NULL;
-BLECharacteristic* water_cachepot_level_max_characteristic = NULL;
+BLECharacteristic* water_container_min_level_characteristic = NULL;
+BLECharacteristic* water_container_max_level_characteristic = NULL;
 BLECharacteristic* water_pump_characteristic = NULL;
 #endif
 #if defined SOIL_SERVICE_UUID
@@ -197,10 +197,10 @@ static void init_ble() {
             SUBJECT_TYPE_UUID_UUID, BLECharacteristic::PROPERTY_READ
     );
     subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_WARN_LED_UUID, BLECharacteristic::PROPERTY_READ
+            SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ
     );
     subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_SHOW_LED_UUID, BLECharacteristic::PROPERTY_READ |
+            SUBJECT_LED_SHOW_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
 #if defined LIGHT_SERVICE_UUID

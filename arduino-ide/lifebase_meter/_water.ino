@@ -18,28 +18,28 @@
 
 static void init_water() {
 
-    pinMode(WATERCACHEPOTLEVELMINPIN, INPUT);
-    pinMode(WATERCACHEPOTLEVELMAXPIN, INPUT);
+    pinMode(WATERCONTAINERLEVELMINPIN, INPUT);
+    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT);
     pinMode(WATERPUMPPIN, OUTPUT);
 }
 
 static void init_ble_water(BLEServer* ble_server) {
 
     BLEService *water_service = ble_server->createService(WATER_SERVICE_UUID);
-    water_cachepot_level_min_characteristic = water_service->createCharacteristic(
-            WATER_CACHEPOT_LEVEL_MIN_UUID, BLECharacteristic::PROPERTY_READ |
+    water_container_min_level_characteristic = water_service->createCharacteristic(
+            WATER_CONTAINER_MIN_LEVEL_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    water_cachepot_level_max_characteristic = water_service->createCharacteristic(
-            WATER_CACHEPOT_LEVEL_MAX_UUID, BLECharacteristic::PROPERTY_READ |
+    water_container_max_level_characteristic = water_service->createCharacteristic(
+            WATER_CONTAINER_MAX_LEVEL_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
     water_pump_characteristic = water_service->createCharacteristic(
             WATER_PUMP_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    water_cachepot_level_min_characteristic->addDescriptor(new BLE2902());
-    water_cachepot_level_max_characteristic->addDescriptor(new BLE2902());
+    water_container_min_level_characteristic->addDescriptor(new BLE2902());
+    water_container_max_level_characteristic->addDescriptor(new BLE2902());
     water_pump_characteristic->addDescriptor(new BLE2902());
     BLE2904 *desc0 = new BLE2904();
     desc0->setFormat(0x01);
@@ -80,13 +80,13 @@ static void get_water_info() {
     digitalWrite(WATERPUMPPIN, LOW);
     set_ble_characteristic(water_pump_characteristic, "1");
     //TODO: the max level is not used yet..
-    if (digitalRead(WATERCACHEPOTLEVELMINPIN)) {
-        set_ble_characteristic(water_cachepot_level_min_characteristic, "1");
-        Serial.println("The cachepot is full enough for the watering pump.");
+    if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
+        set_ble_characteristic(water_container_min_level_characteristic, "1");
+        Serial.println("The container is full enough for the watering pump.");
         pump_water();
     } else {
-        set_ble_characteristic(water_cachepot_level_min_characteristic, "0");
-        Serial.println("WARNING: Please do fill the cachepot!");
+        set_ble_characteristic(water_container_min_level_characteristic, "0");
+        Serial.println("WARNING: Please do fill the container!");
     }
     // just to be sure ..
     digitalWrite(WATERPUMPPIN, LOW);
