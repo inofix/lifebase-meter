@@ -10,6 +10,11 @@
     - https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/
     - https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
 
+    BLE specs can be found here:
+
+    - https://www.bluetooth.com/specifications/gatt/characteristics/
+    - https://www.bluetooth.com/specifications/assigned-numbers/units/
+
     For copyright and/or -left, warranty, terms of use, and such information,
     please have a look at the LICENSE file in the topmost directory...
 */
@@ -82,6 +87,9 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 //// water service configuration
 //#define WATER_SERVICE_UUID "{{ WATER_SERVICE_UUID }}"
 #if defined WATER_SERVICE_UUID
+#define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
+#define WATERCONTAINERLEVELTRIGGERPIN 26
+#define WATERCONTAINERLEVELEChOPIN 25
 #define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
 #define WATERCONTAINERLEVELMINPIN 4
 #define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
@@ -121,6 +129,12 @@ BLECharacteristic* air_temperature_characteristic = NULL;
 BLECharacteristic* air_humidity_characteristic = NULL;
 #endif
 #if defined WATER_SERVICE_UUID
+BLECharacteristic* water_container_level_characteristic = NULL;
+BLECharacteristic* water_container_level_min_crit_characteristic = NULL;
+BLECharacteristic* water_container_level_min_warn_characteristic = NULL;
+BLECharacteristic* water_container_level_max_warn_characteristic = NULL;
+BLECharacteristic* water_container_level_max_crit_characteristic = NULL;
+BLECharacteristic* water_container_depth_characteristic = NULL;
 BLECharacteristic* water_container_min_level_characteristic = NULL;
 BLECharacteristic* water_container_max_level_characteristic = NULL;
 BLECharacteristic* water_pump_characteristic = NULL;
