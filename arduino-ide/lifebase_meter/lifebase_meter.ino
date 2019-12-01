@@ -221,8 +221,8 @@ static void init_ble() {
     subject_name_characteristic->setValue(SUBJECT_NAME);
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
-    subject_warn_characteristic->setValue(0);
-    subject_show_characteristic->setValue(0);
+//    subject_warn_characteristic->setValue(0);
+//    subject_show_characteristic->setValue(0);
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);
