@@ -35,7 +35,7 @@ static void init_ble_water(BLEServer* ble_server) {
             BLECharacteristic::PROPERTY_NOTIFY
     );
     water_pump_characteristic = water_service->createCharacteristic(
-            WATER_PUMP_UUID, BLECharacteristic::PROPERTY_READ |
+            WATER_CONTAINER_PUMP_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
     water_container_min_level_characteristic->addDescriptor(new BLE2902());
