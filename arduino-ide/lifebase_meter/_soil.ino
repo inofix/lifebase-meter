@@ -112,7 +112,7 @@ static int read_soil_moisture_percentage(int PIN) {
     soil_moisture_min_warn = strtol(
             soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
     soil_moisture_max_warn = strtol(
-            soil_moisture_max_characteristic->getValue().c_str(), NULL, 10);
+            soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
 
     if (0 < soil_moisture_min_warn < soil_moisture_max_warn < 100) {
         if (i < soil_moisture_min_warn) {
@@ -143,11 +143,12 @@ static int read_soil_moisture_percentage(int PIN) {
                 is_too_dry = false;
             }
         }
-    } else {
-        set_ble_characteristic(soil_moisture_min_crit_characteristic, "0");
-        set_ble_characteristic(soil_moisture_min_warn_characteristic, "0");
-        set_ble_characteristic(soil_moisture_max_warn_characteristic, "100");
-        set_ble_characteristic(soil_moisture_max_crit_characteristic, "100");
+// Allow to disable the service..
+//    } else {
+//        set_ble_characteristic(soil_moisture_min_crit_characteristic, "0");
+//        set_ble_characteristic(soil_moisture_min_warn_characteristic, "0");
+//        set_ble_characteristic(soil_moisture_max_warn_characteristic, "100");
+//        set_ble_characteristic(soil_moisture_max_crit_characteristic, "100");
     }
     return i;
 }

@@ -72,10 +72,11 @@ static void get_dht_info() {
         Serial.println("Error reading temperature!");
     }
     else {
+        air_temperature = event.temperature;
         Serial.print("Current temperature is ");
-        Serial.print(event.temperature);
+        Serial.print(air_temperature);
         Serial.println("°C.");
-        dtostrf(event.temperature, 3, 1, air_chars);
+        dtostrf(air_temperature, 3, 1, air_chars);
         set_ble_characteristic(air_temperature_characteristic, air_chars);
     }
     dht.humidity().getSensor(&sensor);

@@ -89,12 +89,18 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #if defined WATER_SERVICE_UUID
 #define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
 #define WATERCONTAINERLEVELTRIGGERPIN 26
-#define WATERCONTAINERLEVELEChOPIN 25
+#define WATERCONTAINERLEVELECHOPIN 25
 #define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
 #define WATERCONTAINERLEVELMINPIN 4
 #define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
 #define WATERCONTAINERLEVELMAXPIN 15
 #define WATER_CONTAINER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
+#define WATER_CONTAINER_DISTANCE_UUID "{{ WATER_CONTAINER_DISTANCE_UUID }}"
+#define WATER_CONTAINER_DEPTH_UUID "{{ WATER_CONTAINER_DEPTH_UUID }}"
+#define WATER_CONTAINER_MIN_CRIT_UUID "{{ WATER_CONTAINER_MIN_CRIT_UUID }}"
+#define WATER_CONTAINER_MIN_WARN_UUID "{{ WATER_CONTAINER_MIN_WARN_UUID }}"
+#define WATER_CONTAINER_MAX_WARN_UUID "{{ WATER_CONTAINER_MAX_WARN_UUID }}"
+#define WATER_CONTAINER_MAX_CRIT_UUID "{{ WATER_CONTAINER_MAX_CRIT_UUID }}"
 #define WATERPUMPPIN 2
 #endif
 
@@ -132,23 +138,30 @@ BLECharacteristic* air_humidity_characteristic = NULL;
 #endif
 #if defined WATER_SERVICE_UUID
 BLECharacteristic* water_container_level_characteristic = NULL;
+BLECharacteristic* water_container_depth_characteristic = NULL;
+BLECharacteristic* water_container_distance_characteristic = NULL;
 BLECharacteristic* water_container_level_min_crit_characteristic = NULL;
 BLECharacteristic* water_container_level_min_warn_characteristic = NULL;
 BLECharacteristic* water_container_level_max_warn_characteristic = NULL;
 BLECharacteristic* water_container_level_max_crit_characteristic = NULL;
-BLECharacteristic* water_container_depth_characteristic = NULL;
 BLECharacteristic* water_container_min_level_characteristic = NULL;
 BLECharacteristic* water_container_max_level_characteristic = NULL;
 BLECharacteristic* water_pump_characteristic = NULL;
 #endif
 #if defined SOIL_SERVICE_UUID
 BLECharacteristic* soil_moisture_characteristic = NULL;
-BLECharacteristic* soil_moisture_min_characteristic = NULL;
-BLECharacteristic* soil_moisture_max_characteristic = NULL;
+BLECharacteristic* soil_moisture_min_crit_characteristic = NULL;
+BLECharacteristic* soil_moisture_min_warn_characteristic = NULL;
+BLECharacteristic* soil_moisture_max_warn_characteristic = NULL;
+BLECharacteristic* soil_moisture_max_crit_characteristic = NULL;
 #endif
 bool device_connected = false;
 bool old_device_connected = false;
 uint32_t value = 0;
+
+// globally accessible air temperature (used in water distance..)
+// set default to 20°C in case the air service is not available
+float air_temperature = 20;
 
 // used by both soil and water service together to control
 // pumps/valves
