@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ $1 == debug ] ; then
+    set -x
+    shift
+fi
 #** Version: 0.2
 #* This script prepares a custom configuration for a
 #* certain LifeBase setup with an ESP32.
@@ -174,7 +178,8 @@ if [ -f "$configfilename" ] ; then
         rm $builddir/$lifebaseprefix-$SUBJECT_NAME/*
         rmdir $builddir/$lifebaseprefix-$SUBJECT_NAME
     fi
-    cp -r $codedir $builddir/$lifebaseprefix-$SUBJECT_NAME
+    mkdir $builddir/$lifebaseprefix-$SUBJECT_NAME
+    cp $codedir/*.ino $builddir/$lifebaseprefix-$SUBJECT_NAME/
     mv $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/} $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
     for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE EXTRA_SERVICE ; do
         u=${s}_UUID
