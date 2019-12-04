@@ -21,24 +21,6 @@
 
 #if defined SOIL_SERVICE_UUID
 
-// The sensor used here is a 'Capacitive Soil Moisture Sensor v1.2' from
-// diymore.cc. We protected it against the permanent exposure in a
-// potentially wet and unfriendly environment with lacquer (electronics
-// and PCB edges..).
-// In the reference implementation with a very loose and humus-rich soil
-// we found the following values:
-//   - in water: 31488 (100%)
-//   - after watering: 47133 (38%)
-//   - 'quite dry' soil: 52944 (14%)
-//   - in complete isolation: 56368 (0%)
-//TODO: verify or specify for differnt soil types..
-
-#define SOIL_MOISTURE_ABSOLUTE_MIN 56399
-#define SOIL_MOISTURE_ABSOLUTE_MAX 31488
-
-// MIN/MAX moisture depend on the plant and soil and we might even want
-// to set it dynamically on the device and store it.
-//TODO: store it
 //TODO: authentication needed
 //..
 // default minimum of soil moisture (or when to water / warn / etc.)
@@ -82,14 +64,14 @@ static void init_ble_soil(BLEServer* ble_server) {
             BLECharacteristic::PROPERTY_NOTIFY
     );
     char chars[3];
-    dtostrf(soil_moisture_min_crit, 3, 0, chars);
-    soil_moisture_min_crit_characteristic->setValue(soil_moisture_min_crit_chars);
-    dtostrf(soil_moisture_min_warn, 3, 0, chars);
-    soil_moisture_min_warn_characteristic->setValue(soil_moisture_min_warn_chars);
-    dtostrf(soil_moisture_max_warn, 3, 0, chars);
-    soil_moisture_max_warn_characteristic->setValue(soil_moisture_max_warn_chars);
-    dtostrf(soil_moisture_max_crit, 3, 0, chars);
-    soil_moisture_max_crit_characteristic->setValue(soil_moisture_max_crit_chars);
+    dtostrf(SOIL_MOISTURE_MIN_CRIT_INIT, 3, 0, chars);
+    soil_moisture_min_crit_characteristic->setValue(chars);
+    dtostrf(SOIL_MOISTURE_MIN_WARN_INIT, 3, 0, chars);
+    soil_moisture_min_warn_characteristic->setValue(chars);
+    dtostrf(SOIL_MOISTURE_MAX_WARN_INIT, 3, 0, chars);
+    soil_moisture_max_warn_characteristic->setValue(chars);
+    dtostrf(SOIL_MOISTURE_MAX_CRIT_INIT, 3, 0, chars);
+    soil_moisture_max_crit_characteristic->setValue(chars);
     soil_moisture_characteristic->addDescriptor(new BLE2902());
     soil_moisture_min_crit_characteristic->addDescriptor(new BLE2902());
     soil_moisture_min_warn_characteristic->addDescriptor(new BLE2902());

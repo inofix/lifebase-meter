@@ -19,6 +19,13 @@
     please have a look at the LICENSE file in the topmost directory...
 */
 
+//TODO warn LED
+//TODO leak sensor
+//TODO configurable pump mode
+//TODO configurable soil types
+//TODO interrupts
+//TODO threads
+
 // system constants
 #define LB_TAG "{{ LB_TAG }}"
 
@@ -112,6 +119,26 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #define SOIL_MOISTURE_MIN_WARN_UUID "{{ SOIL_MOISTURE_MIN_WARN_UUID }}"
 #define SOIL_MOISTURE_MAX_WARN_UUID "{{ SOIL_MOISTURE_MAX_WARN_UUID }}"
 #define SOIL_MOISTURE_MAX_CRIT_UUID "{{ SOIL_MOISTURE_MAX_CRIT_UUID }}"
+// MIN/MAX moisture depend on the plant and soil and we might even want
+// to set it dynamically on the device and store it.
+//TODO: Edit from the config script..
+#define SOIL_MOISTURE_MIN_CRIT_INIT 0
+#define SOIL_MOISTURE_MIN_WARN_INIT 0
+#define SOIL_MOISTURE_MAX_WARN_INIT 100
+#define SOIL_MOISTURE_MAX_CRIT_INIT 100
+// The sensor used here is a 'Capacitive Soil Moisture Sensor v1.2' from
+// diymore.cc. We protected it against the permanent exposure in a
+// potentially wet and unfriendly environment with lacquer (electronics
+// and PCB edges..).
+// In the reference implementation with a very loose and humus-rich soil
+// we found the following values:
+//   - in water: 31488 (100%)
+//   - after watering: 47133 (38%)
+//   - 'quite dry' soil: 52944 (14%)
+//   - in complete isolation: 56368 (0%)
+//TODO: verify or specify for differnt soil types..
+#define SOIL_MOISTURE_ABSOLUTE_MIN 56399
+#define SOIL_MOISTURE_ABSOLUTE_MAX 31488
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
