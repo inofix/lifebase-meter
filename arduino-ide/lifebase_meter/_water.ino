@@ -117,12 +117,17 @@ static void init_ble_water(BLEServer* ble_server) {
 static void pump_water() {
 
     if (water_flow_start > 0) {
-        if (PUMP_ON_COUNT < 0) {
+        if (PUMP_ON_COUNT <= 0) {
         // we are in continuous mode
             if (water_flow_force_stop == 0) {
                 digitalWrite(WATERPUMPPIN, HIGH);
                 set_ble_characteristic(water_pump_characteristic, "0");
                 Serial.println("Pump is on...");
+            } else {
+                digitalWrite(WATERPUMPPIN, LOW);
+                water_flow_start = 0;
+                set_ble_characteristic(water_pump_characteristic, "1");
+                Serial.println("Force stopping the pump...");
             }
         } else {
         // we are in interval mode
@@ -148,9 +153,9 @@ static void pump_water() {
 
 // critical threashholds reached..
 // as measured by the HC-SR04
-bool is_crit_low = false;
+static bool is_crit_low = false;
 // as measured by the float switch
-bool is_lower_than = false;
+static bool is_lower_than = false;
 
 static void get_water_info() {
 
@@ -158,11 +163,11 @@ static void get_water_info() {
 
     // temperature is the most significant variable: https://en.wikipedia.org/wiki/Speed_of_sound
     // assumes 20°C if air_service is missing..
+    loop_delay -= 100;
     digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
     delayMicroseconds(99);
     digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, HIGH);
     delayMicroseconds(1);
-    loop_delay -= 100;
     digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
     // (half the way), in seconds
     float water_distance_duration = pulseIn(WATERCONTAINERLEVELECHOPIN, HIGH) / 2;
@@ -191,8 +196,8 @@ static void get_water_info() {
     Serial.print("Current water level is ");
     Serial.print(water_depth);
     Serial.println("m.");
-    char water_depth_chars[3];
-    dtostrf(water_depth, 1, 2, water_depth_chars);
+    char water_depth_chars[4];
+    dtostrf(water_depth, 1, 3, water_depth_chars);
     set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
 
     // ask the float switches

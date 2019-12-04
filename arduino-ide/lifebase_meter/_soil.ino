@@ -101,55 +101,87 @@ static void init_ble_soil(BLEServer* ble_server) {
     soil_service->start();
 }
 
-bool is_too_wet = false;
-bool is_too_dry = false;
+static bool is_too_wet = false;
+static bool is_too_dry = false;
 
 static int read_soil_moisture_percentage(int PIN) {
 
-    int i = (100 - (analogRead(SOILMOISTUREPIN) - SOIL_MOISTURE_ABSOLUTE_MAX) *
-            100 / (SOIL_MOISTURE_ABSOLUTE_MIN - SOIL_MOISTURE_ABSOLUTE_MAX));
-
+    soil_moisture_min_crit = strtol(
+            soil_moisture_min_crit_characteristic->getValue().c_str(), NULL, 10);
     soil_moisture_min_warn = strtol(
             soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
     soil_moisture_max_warn = strtol(
             soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
+    soil_moisture_max_crit = strtol(
+            soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
 
-    if (0 < soil_moisture_min_warn < soil_moisture_max_warn < 100) {
-        if (i < soil_moisture_min_warn) {
-            if (!is_too_dry) {
-                water_flow_start++;
-                is_too_dry = true;
-            }
-            if (is_too_wet) {
-                water_flow_force_stop--;
-                is_too_wet = false;
-            }
-        } else if (i > soil_moisture_max_warn) {
-            if (!is_too_wet) {
-                water_flow_force_stop++;
-                is_too_wet = true;
-            }
-            if (is_too_dry) {
-                water_flow_start--;
-                is_too_dry = false;
-            }
-        } else {
-            if (is_too_wet) {
-                water_flow_force_stop--;
-                is_too_wet = false;
-            }
-            if (is_too_dry) {
-                water_flow_start--;
-                is_too_dry = false;
-            }
-        }
-// Allow to disable the service..
-//    } else {
-//        set_ble_characteristic(soil_moisture_min_crit_characteristic, "0");
-//        set_ble_characteristic(soil_moisture_min_warn_characteristic, "0");
-//        set_ble_characteristic(soil_moisture_max_warn_characteristic, "100");
-//        set_ble_characteristic(soil_moisture_max_crit_characteristic, "100");
+    if (0 == soil_moisture_min_crit && 0 == soil_moisture_min_warn &&
+            soil_moisture_max_warn == 100 && soil_moisture_max_crit == 100) {
+        Serial.println("Watering service is disabled.");
+        Serial.print("  min crit: ");
+        Serial.print(soil_moisture_min_crit);
+        Serial.print("; min warn: ");
+        Serial.print(soil_moisture_min_warn);
+        Serial.print("; max warn: ");
+        Serial.print(soil_moisture_max_warn);
+        Serial.print("; max crit: ");
+        Serial.print(soil_moisture_max_crit);
+        Serial.println(";");
+    // we have 0 == min-crit == min-warn && 100 == max-crit == max-warn
+    // already tested above..
+    } else if (0 <= soil_moisture_min_crit &&
+            soil_moisture_min_crit <= soil_moisture_min_warn &&
+            soil_moisture_max_warn <= soil_moisture_max_crit &&
+            soil_moisture_max_crit <= 100) {
+        Serial.println("Watering service is enabled.");
+        Serial.print("  min crit: ");
+        Serial.print(soil_moisture_min_crit);
+        Serial.print("; min warn: ");
+        Serial.print(soil_moisture_min_warn);
+        Serial.print("; max warn: ");
+        Serial.print(soil_moisture_max_warn);
+        Serial.print("; max crit: ");
+        Serial.print(soil_moisture_max_crit);
+        Serial.println(";");
+    } else {
+        Serial.println("Warning: moisture min/max settings do not make sense!");
+        Serial.print("  min crit: ");
+        Serial.print(soil_moisture_min_crit);
+        Serial.print("; min warn: ");
+        Serial.print(soil_moisture_min_warn);
+        Serial.print("; max warn: ");
+        Serial.print(soil_moisture_max_warn);
+        Serial.print("; max crit: ");
+        Serial.print(soil_moisture_max_crit);
+        Serial.println(";");
     }
+
+    int i = (100 - (analogRead(SOILMOISTUREPIN) - SOIL_MOISTURE_ABSOLUTE_MAX) *
+            100 / (SOIL_MOISTURE_ABSOLUTE_MIN - SOIL_MOISTURE_ABSOLUTE_MAX));
+
+    if (i < soil_moisture_min_warn) {
+        if (!is_too_dry) {
+            water_flow_start++;
+            is_too_dry = true;
+        }
+    } else if (soil_moisture_max_warn < i) {
+        if (is_too_dry) {
+            water_flow_start--;
+            is_too_dry = false;
+        }
+    }
+    if (i < soil_moisture_max_crit) {
+        if (is_too_wet) {
+            water_flow_force_stop--;
+            is_too_wet = false;
+        }
+    } else {
+        if (!is_too_wet) {
+            water_flow_force_stop++;
+            is_too_wet = true;
+        }
+    }
+
     return i;
 }
 
