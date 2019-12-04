@@ -43,15 +43,11 @@
 //..
 // default minimum of soil moisture (or when to water / warn / etc.)
 int soil_moisture_min_crit = 0;
-char soil_moisture_min_crit_chars[3];
 int soil_moisture_min_warn = 0;
-char soil_moisture_min_warn_chars[3];
 // default maximum of soil moisture (or when to stop watering or open valve
 // / warn / etc.)
 int soil_moisture_max_warn = 100;
-char soil_moisture_max_warn_chars[3];
 int soil_moisture_max_crit = 100;
-char soil_moisture_max_crit_chars[3];
 
 static void init_soil() {
 
@@ -85,13 +81,14 @@ static void init_ble_soil(BLEServer* ble_server) {
             BLECharacteristic::PROPERTY_WRITE |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    dtostrf(soil_moisture_min_crit, 3, 0, soil_moisture_min_crit_chars);
+    char chars[3];
+    dtostrf(soil_moisture_min_crit, 3, 0, chars);
     soil_moisture_min_crit_characteristic->setValue(soil_moisture_min_crit_chars);
-    dtostrf(soil_moisture_min_warn, 3, 0, soil_moisture_min_warn_chars);
+    dtostrf(soil_moisture_min_warn, 3, 0, chars);
     soil_moisture_min_warn_characteristic->setValue(soil_moisture_min_warn_chars);
-    dtostrf(soil_moisture_max_warn, 3, 0, soil_moisture_max_warn_chars);
+    dtostrf(soil_moisture_max_warn, 3, 0, chars);
     soil_moisture_max_warn_characteristic->setValue(soil_moisture_max_warn_chars);
-    dtostrf(soil_moisture_max_crit, 3, 0, soil_moisture_max_crit_chars);
+    dtostrf(soil_moisture_max_crit, 3, 0, chars);
     soil_moisture_max_crit_characteristic->setValue(soil_moisture_max_crit_chars);
     soil_moisture_characteristic->addDescriptor(new BLE2902());
     soil_moisture_min_crit_characteristic->addDescriptor(new BLE2902());
