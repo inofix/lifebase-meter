@@ -104,73 +104,68 @@ static void init_ble_soil(BLEServer* ble_server) {
 static bool is_too_wet = false;
 static bool is_too_dry = false;
 
-static int read_soil_moisture_percentage(int PIN) {
+static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
+        int min_crit, int min_warn, int max_warn, int max_crit) {
 
-    soil_moisture_min_crit = strtol(
-            soil_moisture_min_crit_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_min_warn = strtol(
-            soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_max_warn = strtol(
-            soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_max_crit = strtol(
-            soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
-
-    if (0 == soil_moisture_min_crit && 0 == soil_moisture_min_warn &&
-            soil_moisture_max_warn == 100 && soil_moisture_max_crit == 100) {
+    if (0 == min_crit && 0 == min_warn && max_warn == 100 && max_crit == 100) {
         Serial.println("Watering service is disabled.");
         Serial.print("  min crit: ");
-        Serial.print(soil_moisture_min_crit);
+        Serial.print(min_crit);
         Serial.print("; min warn: ");
-        Serial.print(soil_moisture_min_warn);
+        Serial.print(min_warn);
         Serial.print("; max warn: ");
-        Serial.print(soil_moisture_max_warn);
+        Serial.print(max_warn);
         Serial.print("; max crit: ");
-        Serial.print(soil_moisture_max_crit);
+        Serial.print(max_crit);
         Serial.println(";");
     // we have 0 == min-crit == min-warn && 100 == max-crit == max-warn
     // already tested above..
-    } else if (0 <= soil_moisture_min_crit &&
-            soil_moisture_min_crit <= soil_moisture_min_warn &&
-            soil_moisture_max_warn <= soil_moisture_max_crit &&
-            soil_moisture_max_crit <= 100) {
+    } else if (0 <= min_crit && min_crit <= min_warn &&
+            max_warn <= max_crit && max_crit <= 100) {
         Serial.println("Watering service is enabled.");
         Serial.print("  min crit: ");
-        Serial.print(soil_moisture_min_crit);
+        Serial.print(min_crit);
         Serial.print("; min warn: ");
-        Serial.print(soil_moisture_min_warn);
+        Serial.print(min_warn);
         Serial.print("; max warn: ");
-        Serial.print(soil_moisture_max_warn);
+        Serial.print(max_warn);
         Serial.print("; max crit: ");
-        Serial.print(soil_moisture_max_crit);
+        Serial.print(max_crit);
         Serial.println(";");
     } else {
         Serial.println("Warning: moisture min/max settings do not make sense!");
         Serial.print("  min crit: ");
-        Serial.print(soil_moisture_min_crit);
+        Serial.print(min_crit);
         Serial.print("; min warn: ");
-        Serial.print(soil_moisture_min_warn);
+        Serial.print(min_warn);
         Serial.print("; max warn: ");
-        Serial.print(soil_moisture_max_warn);
+        Serial.print(max_warn);
         Serial.print("; max crit: ");
-        Serial.print(soil_moisture_max_crit);
+        Serial.print(max_crit);
         Serial.println(";");
     }
 
-    int i = (100 - (analogRead(SOILMOISTUREPIN) - SOIL_MOISTURE_ABSOLUTE_MAX) *
-            100 / (SOIL_MOISTURE_ABSOLUTE_MIN - SOIL_MOISTURE_ABSOLUTE_MAX));
+    Serial.print("Current soil moisture reported is ");
+    int i = (100 - (analogRead(pin) - abs_max) * 100 / (abs_min - abs_max));
+    Serial.print(i);
+    Serial.print("%. This is actually ");
 
-    if (i < soil_moisture_min_warn) {
+    if (i < min_warn) {
+        Serial.println("too dry!");
         if (!is_too_dry) {
             water_flow_start++;
             is_too_dry = true;
         }
-    } else if (soil_moisture_max_warn < i) {
+    } else if (max_warn < i) {
+        Serial.println("too wet!");
         if (is_too_dry) {
             water_flow_start--;
             is_too_dry = false;
         }
+    } else {
+        Serial.println("just fine.");
     }
-    if (i < soil_moisture_max_crit) {
+    if (i < max_crit) {
         if (is_too_wet) {
             water_flow_force_stop--;
             is_too_wet = false;
@@ -187,19 +182,21 @@ static int read_soil_moisture_percentage(int PIN) {
 
 static void get_soil_info() {
 
-    int soil_moisture = read_soil_moisture_percentage(SOILMOISTUREPIN);
+    soil_moisture_min_crit = strtol(
+            soil_moisture_min_crit_characteristic->getValue().c_str(), NULL, 10);
+    soil_moisture_min_warn = strtol(
+            soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
+    soil_moisture_max_warn = strtol(
+            soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
+    soil_moisture_max_crit = strtol(
+            soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
+
+    int soil_moisture = read_soil_moisture_percentage(SOILMOISTUREPIN,
+        SOIL_MOISTURE_ABSOLUTE_MIN, SOIL_MOISTURE_ABSOLUTE_MAX,
+        soil_moisture_min_crit, soil_moisture_min_warn,
+        soil_moisture_max_warn, soil_moisture_max_crit);
     char soil_moisture_chars[3];
     dtostrf(soil_moisture, 3, 0, soil_moisture_chars);
-    Serial.print("Current soil moisture reported is ");
-    Serial.print(soil_moisture);
-    Serial.print("%. This is actually ");
-    if (is_too_dry) {
-        Serial.println("too dry!");
-    } else if (is_too_wet) {
-        Serial.println("too wet!");
-    } else {
-        Serial.println("just fine.");
-    }
     set_ble_characteristic(soil_moisture_characteristic, soil_moisture_chars);
 }
 
