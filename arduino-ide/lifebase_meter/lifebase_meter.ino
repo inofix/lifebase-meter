@@ -25,22 +25,17 @@
 //TODO configurable soil types
 //TODO authentication needed
 //TODO interrupts
-//TODO threads
+//TODO store configs
+//TODO WiFi?
+//TODO LoRa?
 
 // system constants
 #define LB_TAG "{{ LB_TAG }}"
 
 // define the time to idle between measurements
 // note: the DHT does not deliver new results faster than every 2s
-#define LOOP_DELAY {{ LOOP_DELAY }}
-int loop_delay;
-
-// how long should the pump run each time?
-// note: the time is substracted from the LOOP_DELAY above
-//#{TODO
-#define PUMP_ON_TIME 2000
-#define PUMP_ON_COUNT 4
-//#TODO}
+#define MAIN_LOOP_DELAY {{ MAIN_LOOP_DELAY }}
+int main_loop_delay;
 
 // globally set the analog resolution to 16bit even if the
 // hardware does not support it as to have the same thresholds
@@ -110,6 +105,11 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #define WATER_CONTAINER_MAX_WARN_UUID "{{ WATER_CONTAINER_MAX_WARN_UUID }}"
 #define WATER_CONTAINER_MAX_CRIT_UUID "{{ WATER_CONTAINER_MAX_CRIT_UUID }}"
 #define WATERPUMPPIN 2
+// switch between continuous and interval mode
+#define PUMP_MODE {{ PUMP_MODE }}
+// how long should the pump run and pause each time? (1/2 loop length each)
+#define PUMP_LOOP_DELAY {{ PUMP_LOOP_DELAY }}
+TaskHandle_t WateringTask;
 #endif
 
 //#define SOIL_SERVICE_UUID "{{ SOIL_SERVICE_UUID }}"
@@ -319,15 +319,25 @@ void setup() {
     Serial.begin(115200);
     init_ble();
     init_sensors();
+
+#if defined WATER_SERVICE_UUID
+    // usStackDepth: 10000
+    // last parameter: core
+    xTaskCreatePinnedToCore(watering_loop, "WateringTask", 10000, NULL, 0,
+        &WateringTask, 0);
+#endif
 }
 
 void loop() {
     Serial.println("--");
+    Serial.print("Main task running on core ");
+    Serial.print(xPortGetCoreID());
+    Serial.println(".");
 
     // set the resolution for all analog sensors
     analogReadResolution(ANALOG_RESOLUTION);
 
-    loop_delay = LOOP_DELAY;
+    main_loop_delay = MAIN_LOOP_DELAY;
 
 #if defined LIGHT_SERVICE_UUID
     get_light_info();
@@ -343,5 +353,5 @@ void loop() {
 #endif
 
     // now, just wait for the next loop
-    delay(loop_delay);
+    delay(main_loop_delay);
 }

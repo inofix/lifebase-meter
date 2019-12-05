@@ -114,40 +114,49 @@ static void init_ble_water(BLEServer* ble_server) {
     water_service->start();
 }
 
-static void pump_water() {
+void watering_loop(void* parameters) {
+    for (;;) {
+        Serial.print("Action task running on core ");
+        Serial.print(xPortGetCoreID());
+        Serial.println(".");
+        pump_water(WATERPUMPPIN, PUMP_LOOP_DELAY);
+    }
+}
+
+static void pump_water(int pin, int loop_delay) {
 
     if (water_flow_start > 0) {
-        if (PUMP_ON_COUNT <= 0) {
+        if (PUMP_MODE <= 0) {
         // we are in continuous mode
             if (water_flow_force_stop == 0) {
-                digitalWrite(WATERPUMPPIN, HIGH);
+                digitalWrite(pin, HIGH);
                 set_ble_characteristic(water_pump_characteristic, "0");
                 Serial.println("Pump is on...");
             } else {
-                digitalWrite(WATERPUMPPIN, LOW);
+                digitalWrite(pin, LOW);
                 water_flow_start = 0;
                 set_ble_characteristic(water_pump_characteristic, "1");
                 Serial.println("Force stopping the pump...");
             }
-        } else {
+            delay(loop_delay);
+        } else if (PUMP_MODE == 1) {
         // we are in interval mode
-            for (int i = 0; i < PUMP_ON_COUNT; i++) {
-                if (water_flow_force_stop == 0) {
-                    digitalWrite(WATERPUMPPIN, HIGH);
-                    set_ble_characteristic(water_pump_characteristic, "0");
-                    Serial.println("Pump is on...");
-                }
-                delay(PUMP_ON_TIME);
-                digitalWrite(WATERPUMPPIN, LOW);
-                set_ble_characteristic(water_pump_characteristic, "1");
-                Serial.println("Pump is off...");
-                loop_delay -= PUMP_ON_TIME;
+            if (water_flow_force_stop == 0) {
+                digitalWrite(pin, HIGH);
+                set_ble_characteristic(water_pump_characteristic, "0");
+                Serial.println("Pump is on...");
             }
+            delay(loop_delay / 2);
+            digitalWrite(pin, LOW);
+            set_ble_characteristic(water_pump_characteristic, "1");
+            Serial.println("Pump is off...");
+            delay(loop_delay / 2);
         }
     } else {
-        digitalWrite(WATERPUMPPIN, LOW);
+        digitalWrite(pin, LOW);
         set_ble_characteristic(water_pump_characteristic, "1");
         Serial.println("Pump is off...");
+        delay(loop_delay);
     }
 }
 
@@ -163,7 +172,7 @@ static void get_water_info() {
 
     // temperature is the most significant variable: https://en.wikipedia.org/wiki/Speed_of_sound
     // assumes 20°C if air_service is missing..
-    loop_delay -= 100;
+    main_loop_delay -= 100;
     digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
     delayMicroseconds(99);
     digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, HIGH);
@@ -222,7 +231,6 @@ static void get_water_info() {
     } else {
         set_ble_characteristic(water_container_min_level_characteristic, "0");
     }
-    pump_water();
 }
 
 #endif
