@@ -137,6 +137,7 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 //   - 'quite dry' soil: 52944 (14%)
 //   - in complete isolation: 56368 (0%)
 //TODO: verify or specify for differnt soil types..
+//TODO: Edit from the config script..
 #define SOIL_MOISTURE_ABSOLUTE_MIN 56399
 #define SOIL_MOISTURE_ABSOLUTE_MAX 31488
 // see _water.ino for the concrete MAX/MIN values..
