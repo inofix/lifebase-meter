@@ -76,22 +76,65 @@ static bool is_too_dry = false;
 static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
         int min_crit, int min_warn, int max_warn, int max_crit) {
 
+    Serial.print("Current soil moisture reported is ");
+    int i = (100 - (analogRead(pin) - abs_max) * 100 / (abs_min - abs_max));
+    Serial.print(i);
+
     if (0 == min_crit && 0 == min_warn && max_warn == 100 && max_crit == 100) {
-        Serial.println("Watering service is disabled.");
-        Serial.print("  min crit: ");
-        Serial.print(min_crit);
-        Serial.print("; min warn: ");
-        Serial.print(min_warn);
-        Serial.print("; max warn: ");
-        Serial.print(max_warn);
-        Serial.print("; max crit: ");
-        Serial.print(max_crit);
-        Serial.println(";");
+        Serial.println("% (watering service is disabled).");
+//        Serial.print("  min crit: ");
+//        Serial.print(min_crit);
+//        Serial.print("; min warn: ");
+//        Serial.print(min_warn);
+//        Serial.print("; max warn: ");
+//        Serial.print(max_warn);
+//        Serial.print("; max crit: ");
+//        Serial.print(max_crit);
+//        Serial.println(";");
     // we have 0 == min-crit == min-warn && 100 == max-crit == max-warn
     // already tested above..
     } else if (0 <= min_crit && min_crit <= min_warn &&
             max_warn <= max_crit && max_crit <= 100) {
-        Serial.println("Watering service is enabled.");
+        Serial.println("% (watering service is enabled).");
+//        Serial.print("  min crit: ");
+//        Serial.print(min_crit);
+//        Serial.print("; min warn: ");
+//        Serial.print(min_warn);
+//        Serial.print("; max warn: ");
+//        Serial.print(max_warn);
+//        Serial.print("; max crit: ");
+//        Serial.print(max_crit);
+//        Serial.println(";");
+
+        Serial.print("  This is actually ");
+        if (i < min_warn) {
+            Serial.println("too dry!");
+            if (!is_too_dry) {
+                water_flow_start++;
+                is_too_dry = true;
+            }
+        } else if (max_warn < i) {
+            Serial.println("too wet!");
+            if (is_too_dry) {
+                water_flow_start--;
+                is_too_dry = false;
+            }
+        } else {
+            Serial.println("just fine.");
+        }
+        if (i < max_crit) {
+            if (is_too_wet) {
+                water_flow_force_stop--;
+                is_too_wet = false;
+            }
+        } else {
+            if (!is_too_wet) {
+                water_flow_force_stop++;
+                is_too_wet = true;
+            }
+        }
+    } else {
+        Serial.println("%. WARNING: moisture min/max settings do not make sense!");
         Serial.print("  min crit: ");
         Serial.print(min_crit);
         Serial.print("; min warn: ");
@@ -101,49 +144,6 @@ static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
         Serial.print("; max crit: ");
         Serial.print(max_crit);
         Serial.println(";");
-    } else {
-        Serial.println("Warning: moisture min/max settings do not make sense!");
-        Serial.print("  min crit: ");
-        Serial.print(min_crit);
-        Serial.print("; min warn: ");
-        Serial.print(min_warn);
-        Serial.print("; max warn: ");
-        Serial.print(max_warn);
-        Serial.print("; max crit: ");
-        Serial.print(max_crit);
-        Serial.println(";");
-    }
-
-    Serial.print("Current soil moisture reported is ");
-    int i = (100 - (analogRead(pin) - abs_max) * 100 / (abs_min - abs_max));
-    Serial.print(i);
-    Serial.print("%. This is actually ");
-
-    if (i < min_warn) {
-        Serial.println("too dry!");
-        if (!is_too_dry) {
-            water_flow_start++;
-            is_too_dry = true;
-        }
-    } else if (max_warn < i) {
-        Serial.println("too wet!");
-        if (is_too_dry) {
-            water_flow_start--;
-            is_too_dry = false;
-        }
-    } else {
-        Serial.println("just fine.");
-    }
-    if (i < max_crit) {
-        if (is_too_wet) {
-            water_flow_force_stop--;
-            is_too_wet = false;
-        }
-    } else {
-        if (!is_too_wet) {
-            water_flow_force_stop++;
-            is_too_wet = true;
-        }
     }
 
     return i;
