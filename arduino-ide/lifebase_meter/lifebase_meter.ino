@@ -23,6 +23,7 @@
 //TODO leak sensor
 //TODO configurable pump mode
 //TODO configurable soil types
+//TODO authentication needed
 //TODO interrupts
 //TODO threads
 
@@ -122,8 +123,11 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 // MIN/MAX moisture depend on the plant and soil and we might even want
 // to set it dynamically on the device and store it.
 //TODO: Edit from the config script..
+// default minimum of soil moisture (or when to water / warn / etc.)
 #define SOIL_MOISTURE_MIN_CRIT_INIT 0
 #define SOIL_MOISTURE_MIN_WARN_INIT 0
+// default maximum of soil moisture (or when to stop watering or open valve
+// / warn / etc.)
 #define SOIL_MOISTURE_MAX_WARN_INIT 100
 #define SOIL_MOISTURE_MAX_CRIT_INIT 100
 // The sensor used here is a 'Capacitive Soil Moisture Sensor v1.2' from

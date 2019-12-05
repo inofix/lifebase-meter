@@ -21,16 +21,6 @@
 
 #if defined SOIL_SERVICE_UUID
 
-//TODO: authentication needed
-//..
-// default minimum of soil moisture (or when to water / warn / etc.)
-int soil_moisture_min_crit = 0;
-int soil_moisture_min_warn = 0;
-// default maximum of soil moisture (or when to stop watering or open valve
-// / warn / etc.)
-int soil_moisture_max_warn = 100;
-int soil_moisture_max_crit = 100;
-
 static void init_soil() {
 
     pinMode(SOILMOISTUREPIN, INPUT);
@@ -161,13 +151,13 @@ static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
 
 static void get_soil_info() {
 
-    soil_moisture_min_crit = strtol(
+    int soil_moisture_min_crit = strtol(
             soil_moisture_min_crit_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_min_warn = strtol(
+    int soil_moisture_min_warn = strtol(
             soil_moisture_min_warn_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_max_warn = strtol(
+    int soil_moisture_max_warn = strtol(
             soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
-    soil_moisture_max_crit = strtol(
+    int soil_moisture_max_crit = strtol(
             soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
 
     int soil_moisture = read_soil_moisture_percentage(SOILMOISTUREPIN,
