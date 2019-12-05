@@ -144,6 +144,11 @@ static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
         Serial.print("; max crit: ");
         Serial.print(max_crit);
         Serial.println(";");
+        // in this case we do not want to be responsible for using the pump..
+        if (is_too_dry) {
+            water_flow_start--;
+            is_too_dry = false;
+        }
     }
 
     return i;
