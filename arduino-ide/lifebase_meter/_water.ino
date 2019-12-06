@@ -28,8 +28,8 @@ static void init_water() {
     pinMode(WATERCONTAINERLEVELECHOPIN, INPUT);
 
     // initialize the two swim switches
-    pinMode(WATERCONTAINERLEVELMINPIN, INPUT);
-    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT);
+    pinMode(WATERCONTAINERLEVELMINPIN, INPUT_PULLUP);
+    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
 
     // initialize the pump
     pinMode(WATERPUMPPIN, OUTPUT);
