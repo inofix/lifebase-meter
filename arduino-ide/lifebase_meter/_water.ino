@@ -116,26 +116,26 @@ static void init_ble_water(BLEServer* ble_server) {
 
 void watering_loop(void* parameters) {
     for (;;) {
-        Serial.print("Action task running on core ");
+        Serial.print("Watering action task is running on core ");
         Serial.print(xPortGetCoreID());
         Serial.println(".");
-        pump_water(WATERPUMPPIN, PUMP_LOOP_DELAY);
+        pump_water(WATERPUMPPIN, water_pump_characteristic, PUMP_LOOP_DELAY);
     }
 }
 
-static void pump_water(int pin, int loop_delay) {
+static void pump_water(int pin, BLECharacteristic* characteristic, int loop_delay) {
 
     if (water_flow_start > 0) {
         if (PUMP_MODE <= 0) {
         // we are in continuous mode
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, HIGH);
-                set_ble_characteristic(water_pump_characteristic, "0");
+                set_ble_characteristic(characteristic, "0");
                 Serial.println("Pump is on...");
             } else {
                 digitalWrite(pin, LOW);
                 water_flow_start = 0;
-                set_ble_characteristic(water_pump_characteristic, "1");
+                set_ble_characteristic(characteristic, "1");
                 Serial.println("Force stopping the pump...");
             }
             delay(loop_delay);
@@ -143,18 +143,18 @@ static void pump_water(int pin, int loop_delay) {
         // we are in interval mode
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, HIGH);
-                set_ble_characteristic(water_pump_characteristic, "0");
+                set_ble_characteristic(characteristic, "0");
                 Serial.println("Pump is on...");
             }
             delay(loop_delay / 2);
             digitalWrite(pin, LOW);
-            set_ble_characteristic(water_pump_characteristic, "1");
+            set_ble_characteristic(characteristic, "1");
             Serial.println("Pump is off...");
             delay(loop_delay / 2);
         }
     } else {
         digitalWrite(pin, LOW);
-        set_ble_characteristic(water_pump_characteristic, "1");
+        set_ble_characteristic(characteristic, "1");
         Serial.println("Pump is off...");
         delay(loop_delay);
     }
