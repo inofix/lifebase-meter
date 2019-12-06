@@ -49,7 +49,7 @@ int main_loop_delay;
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
-#define SUBJECT_LED_SHOW_UUID "{{ SUBJECT_LED_SHOW_UUID }}"
+#define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
 
 // system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -57,9 +57,17 @@ int main_loop_delay;
 #define SUBJECT_UUID "{{ SUBJECT_UUID }}"
 #define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
 #define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
-#define SUBJECT_LED_RED_PIN 12
 #define SUBJECT_LED_RED_PIN 14
-#define SUBJECT_LED_RED_PIN 17
+#define SUBJECT_LED_GREEN_PIN 27
+#define SUBJECT_LED_BLUE_PIN 12
+#define SUBJECT_LED_CHANNEL_WHITE 0
+#define SUBJECT_LED_CHANNEL_RED 2
+#define SUBJECT_LED_CHANNEL_GREEN 4
+#define SUBJECT_LED_CHANNEL_BLUE 6
+#define SUBJECT_LED_FREQUENCY 5000
+#define SUBJECT_LED_RESOLUTION 8
+#define SUBJECT_STATUS_LOOP 8000
+TaskHandle_t StatusTask;
 
 /// measurements/action - #change# uncoment service UUIDs as needed
 ///// light service configuration
@@ -160,7 +168,7 @@ BLECharacteristic* subject_name_characteristic = NULL;
 BLECharacteristic* subject_type_characteristic = NULL;
 BLECharacteristic* subject_type_id_characteristic = NULL;
 BLECharacteristic* subject_warn_characteristic = NULL;
-BLECharacteristic* subject_show_characteristic = NULL;
+BLECharacteristic* subject_identify_characteristic = NULL;
 #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
 #endif
@@ -260,8 +268,8 @@ static void init_ble() {
     subject_warn_characteristic = subject_service->createCharacteristic(
             SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ
     );
-    subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_LED_SHOW_UUID, BLECharacteristic::PROPERTY_READ |
+    subject_identify_characteristic = subject_service->createCharacteristic(
+            SUBJECT_LED_IDENTIFY_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
 #if defined LIGHT_SERVICE_UUID
@@ -283,7 +291,7 @@ static void init_ble() {
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
     subject_warn_characteristic->setValue("0");
-    subject_show_characteristic->setValue("0");
+    subject_identify_characteristic->setValue("0");
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);
@@ -314,16 +322,63 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
     }
 }
 
+void status_loop(void* parameters) {
+
+    for (;;) {
+        Serial.print("Status action task is running on core ");
+        Serial.print(xPortGetCoreID());
+        Serial.println(".");
+        status_led();
+    }
+}
+
+void status_led() {
+
+    int identify = strtol(
+        subject_identify_characteristic->getValue().c_str(), NULL, 10);
+    set_ble_characteristic(subject_identify_characteristic, "0");
+    for (int i = 0; i < identify; i++) {
+        for (int j = 0; j < 256; j++) {
+            ledcWrite(SUBJECT_LED_CHANNEL_WHITE, j);
+            delay(1);
+        }
+        for (int j = 255; j > 0; j--) {
+            ledcWrite(SUBJECT_LED_CHANNEL_WHITE, j);
+            delay(1);
+        }
+    }
+    ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 33);
+    delay(SUBJECT_STATUS_LOOP);
+}
+
 void setup() {
 
     Serial.begin(115200);
     init_ble();
     init_sensors();
 
-#if defined WATER_SERVICE_UUID
-    // usStackDepth: 10000
+    ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,
+        SUBJECT_LED_RESOLUTION);
+    ledcSetup(SUBJECT_LED_CHANNEL_GREEN, SUBJECT_LED_FREQUENCY,
+        SUBJECT_LED_RESOLUTION);
+    ledcSetup(SUBJECT_LED_CHANNEL_BLUE, SUBJECT_LED_FREQUENCY,
+        SUBJECT_LED_RESOLUTION);
+    ledcSetup(SUBJECT_LED_CHANNEL_WHITE, SUBJECT_LED_FREQUENCY,
+        SUBJECT_LED_RESOLUTION);
+    ledcAttachPin(SUBJECT_LED_RED_PIN, SUBJECT_LED_CHANNEL_RED);
+    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_BLUE);
+    ledcAttachPin(SUBJECT_LED_RED_PIN, SUBJECT_LED_CHANNEL_WHITE);
+    ledcAttachPin(SUBJECT_LED_GREEN_PIN, SUBJECT_LED_CHANNEL_WHITE);
+    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_WHITE);
+    ledcAttachPin(SUBJECT_LED_GREEN_PIN, SUBJECT_LED_CHANNEL_GREEN);
+
+    // usStackDepth: 8000
     // last parameter: core
-    xTaskCreatePinnedToCore(watering_loop, "WateringTask", 10000, NULL, 0,
+    xTaskCreatePinnedToCore(status_loop, "StatusTask", 8000, NULL, 0,
+        &StatusTask, 0);
+
+#if defined WATER_SERVICE_UUID
+    xTaskCreatePinnedToCore(watering_loop, "WateringTask", 8000, NULL, 0,
         &WateringTask, 0);
 #endif
 }
