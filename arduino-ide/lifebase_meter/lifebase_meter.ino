@@ -48,6 +48,7 @@ int main_loop_delay;
 #define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
+#define SUBJECT_LED_HEALTH_UUID "{{ SUBJECT_LED_HEALTH_UUID }}"
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
 #define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
 
@@ -60,10 +61,9 @@ int main_loop_delay;
 #define SUBJECT_LED_RED_PIN 14
 #define SUBJECT_LED_GREEN_PIN 27
 #define SUBJECT_LED_BLUE_PIN 12
-#define SUBJECT_LED_CHANNEL_WHITE 0
-#define SUBJECT_LED_CHANNEL_RED 2
-#define SUBJECT_LED_CHANNEL_GREEN 4
-#define SUBJECT_LED_CHANNEL_BLUE 6
+#define SUBJECT_LED_CHANNEL_RED 0
+#define SUBJECT_LED_CHANNEL_GREEN 2
+#define SUBJECT_LED_CHANNEL_BLUE 4
 #define SUBJECT_LED_FREQUENCY 5000
 #define SUBJECT_LED_RESOLUTION 8
 #define SUBJECT_STATUS_LOOP 8000
@@ -168,6 +168,7 @@ BLECharacteristic* subject_name_characteristic = NULL;
 BLECharacteristic* subject_type_characteristic = NULL;
 BLECharacteristic* subject_type_id_characteristic = NULL;
 BLECharacteristic* subject_warn_characteristic = NULL;
+BLECharacteristic* subject_health_characteristic = NULL;
 BLECharacteristic* subject_identify_characteristic = NULL;
 #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
@@ -266,7 +267,13 @@ static void init_ble() {
             SUBJECT_TYPE_UUID_UUID, BLECharacteristic::PROPERTY_READ
     );
     subject_warn_characteristic = subject_service->createCharacteristic(
-            SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ
+            SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_NOTIFY
+    );
+    subject_health_characteristic = subject_service->createCharacteristic(
+            SUBJECT_LED_HEALTH_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_NOTIFY
     );
     subject_identify_characteristic = subject_service->createCharacteristic(
             SUBJECT_LED_IDENTIFY_UUID, BLECharacteristic::PROPERTY_READ |
@@ -291,6 +298,7 @@ static void init_ble() {
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
     subject_warn_characteristic->setValue("0");
+    subject_health_characteristic->setValue("good");
     subject_identify_characteristic->setValue("0");
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
@@ -338,16 +346,37 @@ void status_led() {
         subject_identify_characteristic->getValue().c_str(), NULL, 10);
     set_ble_characteristic(subject_identify_characteristic, "0");
     for (int i = 0; i < identify; i++) {
+        Serial.print("Greeting the user: 'Heeeeello, over heeere!'");
         for (int j = 0; j < 256; j++) {
-            ledcWrite(SUBJECT_LED_CHANNEL_WHITE, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, j);
             delay(1);
         }
         for (int j = 255; j > 0; j--) {
-            ledcWrite(SUBJECT_LED_CHANNEL_WHITE, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, j);
             delay(1);
         }
     }
-    ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 33);
+    String health = subject_health_characteristic->getValue().c_str();
+    Serial.print("The overall health condition of this setup is ");
+    Serial.print(health);
+    Serial.println(".");
+    if (health == "good") {
+        ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+    } else if (health == "sick") {
+        ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+    } else {
+        ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+    }
     delay(SUBJECT_STATUS_LOOP);
 }
 
@@ -358,19 +387,14 @@ void setup() {
     init_sensors();
 
     ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,
-        SUBJECT_LED_RESOLUTION);
+                                        SUBJECT_LED_RESOLUTION);
     ledcSetup(SUBJECT_LED_CHANNEL_GREEN, SUBJECT_LED_FREQUENCY,
-        SUBJECT_LED_RESOLUTION);
+                                        SUBJECT_LED_RESOLUTION);
     ledcSetup(SUBJECT_LED_CHANNEL_BLUE, SUBJECT_LED_FREQUENCY,
-        SUBJECT_LED_RESOLUTION);
-    ledcSetup(SUBJECT_LED_CHANNEL_WHITE, SUBJECT_LED_FREQUENCY,
-        SUBJECT_LED_RESOLUTION);
+                                        SUBJECT_LED_RESOLUTION);
     ledcAttachPin(SUBJECT_LED_RED_PIN, SUBJECT_LED_CHANNEL_RED);
-    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_BLUE);
-    ledcAttachPin(SUBJECT_LED_RED_PIN, SUBJECT_LED_CHANNEL_WHITE);
-    ledcAttachPin(SUBJECT_LED_GREEN_PIN, SUBJECT_LED_CHANNEL_WHITE);
-    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_WHITE);
     ledcAttachPin(SUBJECT_LED_GREEN_PIN, SUBJECT_LED_CHANNEL_GREEN);
+    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_BLUE);
 
     // usStackDepth: 8000
     // last parameter: core
