@@ -19,11 +19,9 @@
     please have a look at the LICENSE file in the topmost directory...
 */
 
-//TODO leak sensor
 //TODO configurable pump mode
 //TODO configurable soil types
 //TODO authentication needed
-//TODO interrupts
 //TODO store configs
 //TODO WiFi?
 //TODO LoRa?
@@ -154,6 +152,12 @@ TaskHandle_t WateringTask;
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
+//#define EXTRA_SERVICE_UUID "{{ EXTRA_SERVICE_UUID }}"
+#if defined EXTRA_SERVICE_UUID
+#define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
+#define EXTRA_LEAK_PIN 33
+#endif
+
 // BLE includes
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -195,6 +199,9 @@ BLECharacteristic* soil_moisture_min_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_crit_characteristic = NULL;
 #endif
+#if defined EXTRA_SERVICE_UUID
+BLECharacteristic* extra_leak_characteristic = NULL;
+#endif
 bool device_connected = false;
 bool old_device_connected = false;
 uint32_t value = 0;
@@ -224,6 +231,9 @@ static void init_sensors() {
 #endif
 #if defined SOIL_SERVICE_UUID
     init_soil();
+#endif
+#if defined EXTRA_SERVICE_UUID
+    init_extra();
 #endif
     Serial.println("done.");
 }
@@ -289,6 +299,9 @@ static void init_ble() {
 #endif
 #if defined SOIL_SERVICE_UUID
     init_ble_soil(ble_server);
+#endif
+#if defined EXTRA_SERVICE_UUID
+    init_ble_extra(ble_server);
 #endif
 
 //    subject_uuid_characteristic->addDescriptor(new BLE2902());
@@ -449,6 +462,9 @@ void loop() {
 #endif
 #if defined WATER_SERVICE_UUID
     get_water_info();
+#endif
+#if defined EXTRA_SERVICE_UUID
+    get_extra_info();
 #endif
 
     // now, just wait for the next loop
