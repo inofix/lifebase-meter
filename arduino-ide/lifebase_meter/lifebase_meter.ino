@@ -373,24 +373,6 @@ void status_led() {
             delay(1);
         }
     }
-    // under 'stable conditions', just show the status
-    String health = subject_health_characteristic->getValue().c_str();
-    Serial.print("The overall health condition of this setup is ");
-    Serial.print(health);
-    Serial.println(".");
-    if (health == "good") {
-        ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
-        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
-        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-    } else if (health == "sick") {
-        ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
-        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
-        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-    } else {
-        ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
-        ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
-        ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-    }
     // under 'unstable conditions' show a blinking warning
     if (water_flow_start) {
         // tell the user to play the pump (or that it is pumping..)
@@ -406,9 +388,27 @@ void status_led() {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
-            delay(4);
+            delay(32);
         }
     } else {
+        // under 'stable conditions', just show the status
+        String health = subject_health_characteristic->getValue().c_str();
+        Serial.print("The overall health condition of this setup is ");
+        Serial.print(health);
+        Serial.println(".");
+        if (health == "good") {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else if (health == "sick") {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        }
         delay(SUBJECT_STATUS_LOOP);
     }
 }
