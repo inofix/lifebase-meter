@@ -130,9 +130,9 @@ static void init_ble_water(BLEServer* ble_server) {
 
 void watering_loop(void* parameters) {
     for (;;) {
-        Serial.print("Watering action task is running on core ");
-        Serial.print(xPortGetCoreID());
-        Serial.println(".");
+//        Serial.print("Watering action task is running on core ");
+//        Serial.print(xPortGetCoreID());
+//        Serial.println(".");
         pump_water(WATERPUMPPIN, water_pump_characteristic, PUMP_LOOP_DELAY);
     }
 }
