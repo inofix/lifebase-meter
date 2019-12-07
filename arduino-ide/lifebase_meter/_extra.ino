@@ -23,15 +23,17 @@
 
 bool is_leaked = false;
 
-void IRAM_ATTR isr() {
-    is_leaked = true;
-    water_flow_force_stop++;
+void IRAM_ATTR leak_isr() {
+    if (! is_leaked) {
+        is_leaked = true;
+        water_flow_force_stop++;
+    }
 }
 
 static void init_extra() {
 
     pinMode(EXTRA_LEAK_PIN, INPUT_PULLUP);
-    attachInterrupt(EXTRA_LEAK_PIN, isr, HIGH);
+    attachInterrupt(EXTRA_LEAK_PIN, leak_isr, HIGH);
 }
 
 static void init_ble_extra(BLEServer* ble_server) {
@@ -53,7 +55,7 @@ static void get_extra_info() {
             is_leaked = false;
             water_flow_force_stop--;
         }
-        Serial.println("There was no detected outside the system!");
+        Serial.println("There was no water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "1");
     } else {
         Serial.println("Warning: There was water detected outside the system!");

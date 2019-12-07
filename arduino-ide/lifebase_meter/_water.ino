@@ -21,6 +21,19 @@
 
 #if defined WATER_SERVICE_UUID
 
+// critical threashholds reached..
+// as measured by the HC-SR04
+static bool is_crit_low = false;
+// as measured by the float switch
+static bool is_lower_than = false;
+
+void IRAM_ATTR switch_isr() {
+    if (! is_lower_than) {
+        is_lower_than = true;
+        water_flow_force_stop++;
+    }
+}
+
 static void init_water() {
 
     // initialize the HC-SR04
@@ -29,6 +42,7 @@ static void init_water() {
 
     // initialize the two swim switches
     pinMode(WATERCONTAINERLEVELMINPIN, INPUT_PULLUP);
+    attachInterrupt(WATERCONTAINERLEVELMINPIN, switch_isr, HIGH);
     pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
 
     // initialize the pump
@@ -160,12 +174,6 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
     }
 }
 
-// critical threashholds reached..
-// as measured by the HC-SR04
-static bool is_crit_low = false;
-// as measured by the float switch
-static bool is_lower_than = false;
-
 static void get_water_info() {
 
     // measure the distance to the water surface and add the depth
@@ -212,16 +220,12 @@ static void get_water_info() {
     // ask the float switches
     if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
         if (is_lower_than) {
-            water_flow_force_stop--;
             is_lower_than = false;
+            water_flow_force_stop--;
         }
         set_ble_characteristic(water_container_min_level_characteristic, "1");
         Serial.println("The container is full enough for the watering pump.");
     } else {
-        if (!is_lower_than) {
-            water_flow_force_stop++;
-            is_lower_than = true;
-        }
         set_ble_characteristic(water_container_min_level_characteristic, "0");
         Serial.println("WARNING: please do fill the container!");
     }
