@@ -374,21 +374,21 @@ void status_led() {
         }
     }
     // under 'unstable conditions' show a blinking warning
-    if (water_flow_start) {
-        // tell the user to play the pump (or that it is pumping..)
-        for (int i = 128; i > 0; i--) {
-            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
-            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
-            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
-            delay(1);
-        }
-    } else if (water_flow_force_stop) {
+    if (water_flow_force_stop) {
         // tell the user to stop watering (or that some problem exists..)
         for (int i = 128; i < 256; i++) {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
             delay(24);
+        }
+    } else if (water_flow_start) {
+        // tell the user to play the pump (or that it is pumping..)
+        for (int i = 128; i > 0; i--) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
+            delay(1);
         }
     } else {
         // under 'stable conditions', just show the status
