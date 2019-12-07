@@ -345,9 +345,9 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
 void status_loop(void* parameters) {
 
     for (;;) {
-        Serial.print("Status action task is running on core ");
-        Serial.print(xPortGetCoreID());
-        Serial.println(".");
+//        Serial.print("Status action task is running on core ");
+//        Serial.print(xPortGetCoreID());
+//        Serial.println(".");
         status_led();
     }
 }
@@ -388,7 +388,7 @@ void status_led() {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
-            delay(32);
+            delay(24);
         }
     } else {
         // under 'stable conditions', just show the status
@@ -442,9 +442,9 @@ void setup() {
 
 void loop() {
     Serial.println("--");
-    Serial.print("Main task running on core ");
-    Serial.print(xPortGetCoreID());
-    Serial.println(".");
+//    Serial.print("Main task running on core ");
+//    Serial.print(xPortGetCoreID());
+//    Serial.println(".");
 
     // set the resolution for all analog sensors
     analogReadResolution(ANALOG_RESOLUTION);
