@@ -21,7 +21,11 @@
 */
 
 #if defined LIGHT_SERVICE_UUID
+#if LIGHT_EXPOSURE_SENSOR == 2561
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, LIGHT_EXPOSURE_I2C_UID);
+#elif LIGHT_EXPOSURE_SENSOR == 2591
+Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591);
+#endif
 
 static void init_light() {
 

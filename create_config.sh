@@ -22,6 +22,8 @@ builddir="build"
 
 # default service settings
 lightservce="on"
+luxmeter="2591"
+
 airservice="on"
 waterservice="on"
 soilservice="on"
@@ -69,7 +71,13 @@ for s in $@ ; do
         -L)
             lightservice="off"
         ;;
-#*      -s/-S               turn waterservice (on)/off
+#*      --luxmeter sensor   choose a sensor model, currently supported are:
+#*                          2561, 2591
+        --luxmeter)
+            shift
+            luxmeter="$1"
+        ;;
+#*      -s/-S               turn soilservice (on)/off
         -s)
             soilservice="on"
         ;;
@@ -124,6 +132,9 @@ fi
 
 configfilename="$configsdir/lifebase-meter-$(echo $subjectname | sed 's;\s;;g').conf"
 
+##TODO split this tool ...
+
+# here we create a config file per device
 if [ -f $configfilename ] ; then
     if [ -n "$subjectuuid$subjecttype$subjecttypeuuid" ] ; then
         echo "Error: a configuration file already existed but you provided additional infos - exiting"
@@ -166,6 +177,7 @@ else
                 $configexamplename > $configfilename
 fi
 
+# here we generate the code for each device
 if [ -f "$configfilename" ] ; then
 
     vars=( $(awk '/^[_0-9a-zA-Z]**="?[-_+#0-9a-zA-Z]*"?$/ {print $0}' $configfilename) )

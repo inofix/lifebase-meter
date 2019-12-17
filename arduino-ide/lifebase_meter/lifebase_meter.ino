@@ -77,6 +77,7 @@ TaskHandle_t StatusTask;
 //#include <Adafruit_TSL2591_U.h>
 #define LIGHT_EXPOSURE_UUID "{{ LIGHT_EXPOSURE_UUID }}"
 #define LIGHT_EXPOSURE_I2C_UID 1
+#define LIGHT_EXPOSURE_SENSOR {{ LIGHT_EXPOSURE_SENSOR }}
 #endif
 
 //// air service configuration
