@@ -191,7 +191,7 @@ BLECharacteristic* water_container_level_max_warn_characteristic = NULL;
 BLECharacteristic* water_container_level_max_crit_characteristic = NULL;
 BLECharacteristic* water_container_min_level_characteristic = NULL;
 BLECharacteristic* water_container_max_level_characteristic = NULL;
-BLECharacteristic* water_pump_characteristic = NULL;
+BLECharacteristic* water_container_pump_characteristic = NULL;
 #endif
 #if defined SOIL_SERVICE_UUID
 BLECharacteristic* soil_moisture_characteristic = NULL;

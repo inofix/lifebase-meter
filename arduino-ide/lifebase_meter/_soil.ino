@@ -35,23 +35,19 @@ static void init_ble_soil(BLEServer* ble_server) {
     );
     soil_moisture_min_crit_characteristic = soil_service->createCharacteristic(
             SOIL_MOISTURE_MIN_CRIT_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_NOTIFY
+            BLECharacteristic::PROPERTY_WRITE
     );
     soil_moisture_min_warn_characteristic = soil_service->createCharacteristic(
             SOIL_MOISTURE_MIN_WARN_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_NOTIFY
+            BLECharacteristic::PROPERTY_WRITE
     );
     soil_moisture_max_warn_characteristic = soil_service->createCharacteristic(
             SOIL_MOISTURE_MAX_WARN_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_NOTIFY
+            BLECharacteristic::PROPERTY_WRITE
     );
     soil_moisture_max_crit_characteristic = soil_service->createCharacteristic(
             SOIL_MOISTURE_MAX_CRIT_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_NOTIFY
+            BLECharacteristic::PROPERTY_WRITE
     );
     char chars[3];
     dtostrf(SOIL_MOISTURE_MIN_CRIT_INIT, 3, 0, chars);

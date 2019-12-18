@@ -51,17 +51,17 @@ static void init_water() {
 
 static void init_ble_water(BLEServer* ble_server) {
 
-    BLEService *water_service = ble_server->createService(WATER_SERVICE_UUID);
+    BLEService *water_service = ble_server->createService(BLEUUID(WATER_SERVICE_UUID)), 38, 0);
     water_container_level_characteristic = water_service->createCharacteristic(
             WATER_CONTAINER_LEVEL_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    water_container_depth_characteristic = water_service->createCharacteristic(
-            WATER_CONTAINER_DEPTH_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE
-    );
     water_container_distance_characteristic = water_service->createCharacteristic(
             WATER_CONTAINER_DISTANCE_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE
+    );
+    water_container_depth_characteristic = water_service->createCharacteristic(
+            WATER_CONTAINER_DEPTH_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
     water_container_level_min_crit_characteristic = water_service->createCharacteristic(
@@ -88,21 +88,20 @@ static void init_ble_water(BLEServer* ble_server) {
             WATER_CONTAINER_MAX_LEVEL_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    water_pump_characteristic = water_service->createCharacteristic(
+    water_container_pump_characteristic = water_service->createCharacteristic(
             WATER_CONTAINER_PUMP_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
     water_container_level_characteristic->addDescriptor(new BLE2902());
+    water_container_distance_characteristic->addDescriptor(new BLE2902());
+    water_container_depth_characteristic->addDescriptor(new BLE2902());
     water_container_level_min_crit_characteristic->addDescriptor(new BLE2902());
     water_container_level_min_warn_characteristic->addDescriptor(new BLE2902());
     water_container_level_max_warn_characteristic->addDescriptor(new BLE2902());
     water_container_level_max_crit_characteristic->addDescriptor(new BLE2902());
-    water_container_distance_characteristic->addDescriptor(new BLE2902());
-    water_container_depth_characteristic->addDescriptor(new BLE2902());
-    water_container_level_characteristic->addDescriptor(new BLE2902());
     water_container_min_level_characteristic->addDescriptor(new BLE2902());
     water_container_max_level_characteristic->addDescriptor(new BLE2902());
-    water_pump_characteristic->addDescriptor(new BLE2902());
+    water_container_pump_characteristic->addDescriptor(new BLE2902());
     BLE2904 *desc0 = new BLE2904();
     desc0->setFormat(0x01);
 //  desc0->setFormat(BLE2904::FORMAT_UINT8); ??
@@ -123,7 +122,36 @@ static void init_ble_water(BLEServer* ble_server) {
     BLE2904 *desc4 = new BLE2904();
     desc4->setFormat(0x01);
     desc4->setUnit(0x2701); // meter
-    water_container_level_min_crit_characteristic->addDescriptor(desc4);
+    water_container_level_max_crit_characteristic->addDescriptor(desc4);
+    BLE2904 *desc5 = new BLE2904();
+    desc5->setFormat(0x01);
+    desc5->setUnit(0x2701); // meter
+    water_container_distance_characteristic->addDescriptor(desc5);
+    BLE2904 *desc6 = new BLE2904();
+    desc6->setFormat(0x01);
+    desc6->setUnit(0x2701); // meter
+    water_container_depth_characteristic->addDescriptor(desc6);
+    char chars[3];
+    dtostrf(0, 3, 0, chars);
+    water_container_level_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_distance_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_depth_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_level_min_crit_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_level_min_warn_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_level_max_warn_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_level_max_crit_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_min_level_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_max_level_characteristic->setValue(chars);
+    dtostrf(0, 3, 0, chars);
+    water_container_pump_characteristic->setValue(chars);
 
     water_service->start();
 }
@@ -133,7 +161,7 @@ void watering_loop(void* parameters) {
 //        Serial.print("Watering action task is running on core ");
 //        Serial.print(xPortGetCoreID());
 //        Serial.println(".");
-        pump_water(WATERPUMPPIN, water_pump_characteristic, PUMP_LOOP_DELAY);
+        pump_water(WATERPUMPPIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
     }
 }
 
