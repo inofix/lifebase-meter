@@ -173,7 +173,7 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, HIGH);
                 set_ble_characteristic(characteristic, "0");
-                Serial.println("Pump is on...");
+                Serial.println("Starting the pump...");
             } else {
                 digitalWrite(pin, LOW);
                 water_flow_start = 0;
@@ -186,18 +186,18 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, HIGH);
                 set_ble_characteristic(characteristic, "0");
-                Serial.println("Pump is on...");
+                Serial.println("Pump is currently on...");
             }
             delay(loop_delay / 2);
             digitalWrite(pin, LOW);
             set_ble_characteristic(characteristic, "1");
-            Serial.println("Pump is off...");
+            Serial.println("Pump is currently off...");
             delay(loop_delay / 2);
         }
     } else {
         digitalWrite(pin, LOW);
         set_ble_characteristic(characteristic, "1");
-        Serial.println("Pump is off...");
+        Serial.println("Turning off the pump...");
         delay(loop_delay);
     }
 }

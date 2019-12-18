@@ -29,6 +29,8 @@ waterservice="on"
 soilservice="on"
 extraservice="off"
 
+pump_mode=0
+
 # helper vars
 subject=()
 i=0
@@ -48,8 +50,8 @@ fi
 #*  usage: $0 [options] [subjectname[:subjectuuid] [subjecttypename[:subjecttypeuuid]]]
 #*    options:
 
-for s in $@ ; do
-    case $1 in
+while true ; do
+    case "$1" in
 #*      -a/-A               turn airservice (on)/off
         -a)
             airservice="on"
@@ -76,6 +78,14 @@ for s in $@ ; do
         --luxmeter)
             shift
             luxmeter="$1"
+        ;;
+#*      --pump-on/--pump-int
+#*      -p/-P/              pump continuously or in intervals
+        -p|--pump-on)
+            pump_mode=0
+        ;;
+        -P|--pump-int)
+            pump_mode=1
         ;;
 #*      -s/-S               turn soilservice (on)/off
         -s)
@@ -111,9 +121,12 @@ for s in $@ ; do
             let i++
             subject[i]=${s[1]}
             let i++
-            shift
+        ;;
+        *)
+            break
         ;;
     esac
+    shift
 done
 
 subjectname=${subject[0]}
@@ -172,6 +185,7 @@ else
             -e 's/LIGHT_SERVICE=""/LIGHT_SERVICE="'$lightservce'"/' \
             -e 's/AIR_SERVICE=""/AIR_SERVICE="'$airservice'"/' \
             -e 's/WATER_SERVICE=""/WATER_SERVICE="'$waterservice'"/' \
+            -e 's/PUMP_MODE=[0-9]*/PUMP_MODE='$pump_mode'/' \
             -e 's/SOIL_SERVICE=""/SOIL_SERVICE="'$soilservice'"/' \
             -e 's/EXTRA_SERVICE=""/EXTRA_SERVICE="'$extraservice'"/' \
                 $configexamplename > $configfilename
