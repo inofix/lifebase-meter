@@ -29,8 +29,10 @@ static bool is_lower_than = false;
 
 void IRAM_ATTR switch_isr() {
     if (! is_lower_than) {
-        is_lower_than = true;
-        water_flow_force_stop++;
+        Serial.println("INTERRUPT: critical water level!");
+//TODO add a condensator..
+//        is_lower_than = true;
+//        water_flow_force_stop++;
     }
 }
 
@@ -43,7 +45,8 @@ static void init_water() {
     // initialize the two swim switches
     pinMode(WATERCONTAINERLEVELMINPIN, INPUT_PULLUP);
     attachInterrupt(WATERCONTAINERLEVELMINPIN, switch_isr, HIGH);
-    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
+// disabled for now..
+//    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
 
     // initialize the pump
     pinMode(WATERPUMPPIN, OUTPUT);
@@ -167,37 +170,41 @@ void watering_loop(void* parameters) {
 
 static void pump_water(int pin, BLECharacteristic* characteristic, int loop_delay) {
 
-    if (water_flow_start > 0) {
-        if (PUMP_MODE <= 0) {
-        // we are in continuous mode
-            if (water_flow_force_stop == 0) {
-                digitalWrite(pin, HIGH);
-                set_ble_characteristic(characteristic, "0");
-                Serial.println("Starting the pump...");
-            } else {
-                digitalWrite(pin, LOW);
-                water_flow_start = 0;
-                set_ble_characteristic(characteristic, "1");
-                Serial.println("Force stopping the pump...");
-            }
-            delay(loop_delay);
-        } else if (PUMP_MODE == 1) {
-        // we are in interval mode
-            if (water_flow_force_stop == 0) {
-                digitalWrite(pin, HIGH);
-                set_ble_characteristic(characteristic, "0");
-                Serial.println("Pump is currently on...");
-            }
-            delay(loop_delay / 2);
+//TODO allow relay control to be inverted.
+// I have a relay here which acts on NO - LOW,
+// all the others switch on HIGH at NO..
+
+    if (PUMP_MODE <= 0) {
+    // we are in continuous mode, this means ignoring external watering requests
+        if (water_flow_force_stop == 0) {
             digitalWrite(pin, LOW);
             set_ble_characteristic(characteristic, "1");
-            Serial.println("Pump is currently off...");
+            Serial.println("Pumping...");
+        } else {
+            digitalWrite(pin, HIGH);
+            set_ble_characteristic(characteristic, "0");
+            Serial.println("Force stopping the pump...");
+        }
+        delay(loop_delay);
+    } else if (PUMP_MODE == 1) {
+    // we are in interval mode, pumping on request only (e.g. soil was too dry..)
+        if (water_flow_start > 0) {
+            if (water_flow_force_stop == 0) {
+                digitalWrite(pin, LOW);
+                set_ble_characteristic(characteristic, "1");
+                Serial.println("Starting the pump...");
+            }
+            delay(loop_delay / 2);
+            digitalWrite(pin, HIGH);
+            set_ble_characteristic(characteristic, "0");
+            Serial.println("Stopping the pump...");
             delay(loop_delay / 2);
         }
     } else {
-        digitalWrite(pin, LOW);
-        set_ble_characteristic(characteristic, "1");
-        Serial.println("Turning off the pump...");
+    // pump is always off in this mode..
+        digitalWrite(pin, HIGH);
+        set_ble_characteristic(characteristic, "0");
+//        Serial.println("Turning off the pump...");
         delay(loop_delay);
     }
 }
@@ -226,17 +233,18 @@ static void get_water_info() {
 
     float crit_threshhold = strtof(
         water_container_level_min_crit_characteristic->getValue().c_str(), NULL);
-    if (water_depth < crit_threshhold) {
-        if (!is_crit_low) {
-            water_flow_force_stop++;
-            is_crit_low = true;
-        }
-    } else {
-        if (is_crit_low) {
-            water_flow_force_stop--;
-            is_crit_low = false;
-        }
-    }
+//disabled for now..
+//    if (water_depth < crit_threshhold) {
+//        if (!is_crit_low) {
+//            water_flow_force_stop++;
+//            is_crit_low = true;
+//        }
+//    } else {
+//        if (is_crit_low) {
+//            water_flow_force_stop--;
+//            is_crit_low = false;
+//        }
+//    }
 
     Serial.print("Current water level is ");
     Serial.print(water_depth);
@@ -254,15 +262,20 @@ static void get_water_info() {
         set_ble_characteristic(water_container_min_level_characteristic, "1");
         Serial.println("The container is full enough for the watering pump.");
     } else {
+        if (!is_lower_than) {
+            is_lower_than = true;
+            water_flow_force_stop++;
+        }
         set_ble_characteristic(water_container_min_level_characteristic, "0");
         Serial.println("WARNING: please do fill the container!");
     }
-    if (digitalRead(WATERCONTAINERLEVELMAXPIN)) {
-        set_ble_characteristic(water_container_max_level_characteristic, "1");
-        Serial.println("WARNING: the maximum level of the container is reached!");
-    } else {
-        set_ble_characteristic(water_container_min_level_characteristic, "0");
-    }
+// currently disabled
+//    if (digitalRead(WATERCONTAINERLEVELMAXPIN)) {
+//        set_ble_characteristic(water_container_max_level_characteristic, "1");
+//        Serial.println("WARNING: the maximum level of the container is reached!");
+//    } else {
+//        set_ble_characteristic(water_container_min_level_characteristic, "0");
+//    }
 }
 
 #endif

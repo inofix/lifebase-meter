@@ -25,8 +25,10 @@ bool is_leaked = false;
 
 void IRAM_ATTR leak_isr() {
     if (! is_leaked) {
-        is_leaked = true;
-        water_flow_force_stop++;
+        Serial.println("INTERRUPT: leak detected!");
+//TODO add a condensator..
+//        is_leaked = true;
+//        water_flow_force_stop++;
     }
 }
 
@@ -58,6 +60,10 @@ static void get_extra_info() {
         Serial.println("There was no water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "1");
     } else {
+        if (!is_leaked) {
+            is_leaked = true;
+            water_flow_force_stop++;
+        }
         Serial.println("Warning: There was water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "1");
     }
