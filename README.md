@@ -34,13 +34,13 @@ we recommend using this solution:
     * Choose:
       * "DOIT ESP32 DEVKIT V1"
   * Add the libraries
-   * Go to: "Sketch", "Include Library", "Manage Libraries"
-   * Choose:
-    * "Adafruit Unified Sensor"
-    * "DHT sensor library"
-    * "ESP32"
-    * "ESP32 BLE Arduino"
-    * "Adafruit TSL2591" (or TSL2561 resp.)
+    * Go to: "Sketch", "Include Library", "Manage Libraries"
+    * Choose:
+      * "Adafruit Unified Sensor"
+      * "DHT sensor library"
+      * "ESP32"
+      * "ESP32 BLE Arduino"
+      * "Adafruit TSL2591" (or TSL2561 resp.)
 
 The development is in the subfolder calles `arduino-ide`, just
 open the main .ino file in your IDE.
