@@ -178,9 +178,9 @@ else
             subjecttypeuuid=$a
         fi
     fi
-    sed -e 's/SUBJECT_NAME=""/SUBJECT_NAME="'$subjectname'"/' \
+    sed -e 's/SUBJECT_NAME=""/SUBJECT_NAME="'"$subjectname"'"/' \
             -e 's/SUBJECT_UUID=""/SUBJECT_UUID="'$subjectuuid'"/' \
-            -e 's/SUBJECT_TYPE_NAME=""/SUBJECT_TYPE_NAME="'$subjecttypename'"/' \
+            -e 's/SUBJECT_TYPE_NAME=""/SUBJECT_TYPE_NAME="'"$subjecttypename"'"/' \
             -e 's/SUBJECT_TYPE_UUID=""/SUBJECT_TYPE_UUID="'$subjecttypeuuid'"/' \
             -e 's/LIGHT_SERVICE=""/LIGHT_SERVICE="'$lightservce'"/' \
             -e 's/AIR_SERVICE=""/AIR_SERVICE="'$airservice'"/' \
