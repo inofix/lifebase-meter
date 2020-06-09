@@ -19,13 +19,6 @@
     please have a look at the LICENSE file in the topmost directory...
 */
 
-//TODO configurable pump mode
-//TODO configurable soil types
-//TODO authentication needed
-//TODO store configs
-//TODO WiFi?
-//TODO LoRa?
-
 // system constants
 #define LB_TAG "{{ LB_TAG }}"
 
@@ -253,12 +246,7 @@ static void init_ble() {
 
     BLEDevice::init(LB_TAG);
 
-    // Improve the range https://community.openmqttgateway.com/t/esp32-ble-range/249/10
-    esp_err_t errRc=esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
-    // without the following the range was only slightly better on our device (DevKit v1)
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN, ESP_PWR_LVL_P9);
-//    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_NUM, ESP_PWR_LVL_P9);
+    BLEDevice::setPower(ESP_PWR_LVL_P9);
 
     ble_server = BLEDevice::createServer();
     ble_server->setCallbacks(new LBMServerCallbacks());
@@ -317,9 +305,8 @@ static void init_ble() {
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);
     ble_advertising->setScanResponse(true);
-    ble_advertising->setMinPreferred(0x0);
-    ble_advertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
-    ble_advertising->setMinPreferred(0x12);
+    ble_advertising->setMinPreferred(0x06);
+    ble_advertising->setMaxPreferred(0x12);
     BLEDevice::startAdvertising();
 }
 
@@ -328,7 +315,7 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
     if (device_connected) {
         characteristic->setValue(value);
         characteristic->notify();
-        delay(3); // Based on BLEnotify: bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
+        delay(333);
     }
     // disconnecting
     if (!device_connected && old_device_connected) {
