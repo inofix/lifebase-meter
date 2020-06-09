@@ -19,16 +19,6 @@
     please have a look at the LICENSE file in the topmost directory...
 */
 
-//TODO warn LED
-//TODO leak sensor
-//TODO configurable pump mode
-//TODO configurable soil types
-//TODO authentication needed
-//TODO interrupts
-//TODO store configs
-//TODO WiFi?
-//TODO LoRa?
-
 // system constants
 #define LB_TAG "{{ LB_TAG }}"
 
@@ -48,8 +38,9 @@ int main_loop_delay;
 #define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
+#define SUBJECT_LED_HEALTH_UUID "{{ SUBJECT_LED_HEALTH_UUID }}"
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
-#define SUBJECT_LED_SHOW_UUID "{{ SUBJECT_LED_SHOW_UUID }}"
+#define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
 
 // system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -57,9 +48,16 @@ int main_loop_delay;
 #define SUBJECT_UUID "{{ SUBJECT_UUID }}"
 #define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
 #define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
-#define SUBJECT_LED_RED_PIN 12
 #define SUBJECT_LED_RED_PIN 14
-#define SUBJECT_LED_RED_PIN 17
+#define SUBJECT_LED_GREEN_PIN 27
+#define SUBJECT_LED_BLUE_PIN 12
+#define SUBJECT_LED_CHANNEL_RED 0
+#define SUBJECT_LED_CHANNEL_GREEN 2
+#define SUBJECT_LED_CHANNEL_BLUE 4
+#define SUBJECT_LED_FREQUENCY 5000
+#define SUBJECT_LED_RESOLUTION 8
+#define SUBJECT_STATUS_LOOP 8000
+TaskHandle_t StatusTask;
 
 /// measurements/action - #change# uncoment service UUIDs as needed
 ///// light service configuration
@@ -72,6 +70,7 @@ int main_loop_delay;
 //#include <Adafruit_TSL2591_U.h>
 #define LIGHT_EXPOSURE_UUID "{{ LIGHT_EXPOSURE_UUID }}"
 #define LIGHT_EXPOSURE_I2C_UID 1
+#define LIGHT_EXPOSURE_SENSOR {{ LIGHT_EXPOSURE_SENSOR }}
 #endif
 
 //// air service configuration
@@ -147,6 +146,12 @@ TaskHandle_t WateringTask;
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
+//#define EXTRA_SERVICE_UUID "{{ EXTRA_SERVICE_UUID }}"
+#if defined EXTRA_SERVICE_UUID
+#define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
+#define EXTRA_LEAK_PIN 33
+#endif
+
 // BLE includes
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -160,7 +165,8 @@ BLECharacteristic* subject_name_characteristic = NULL;
 BLECharacteristic* subject_type_characteristic = NULL;
 BLECharacteristic* subject_type_id_characteristic = NULL;
 BLECharacteristic* subject_warn_characteristic = NULL;
-BLECharacteristic* subject_show_characteristic = NULL;
+BLECharacteristic* subject_health_characteristic = NULL;
+BLECharacteristic* subject_identify_characteristic = NULL;
 #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
 #endif
@@ -178,7 +184,7 @@ BLECharacteristic* water_container_level_max_warn_characteristic = NULL;
 BLECharacteristic* water_container_level_max_crit_characteristic = NULL;
 BLECharacteristic* water_container_min_level_characteristic = NULL;
 BLECharacteristic* water_container_max_level_characteristic = NULL;
-BLECharacteristic* water_pump_characteristic = NULL;
+BLECharacteristic* water_container_pump_characteristic = NULL;
 #endif
 #if defined SOIL_SERVICE_UUID
 BLECharacteristic* soil_moisture_characteristic = NULL;
@@ -186,6 +192,9 @@ BLECharacteristic* soil_moisture_min_crit_characteristic = NULL;
 BLECharacteristic* soil_moisture_min_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_crit_characteristic = NULL;
+#endif
+#if defined EXTRA_SERVICE_UUID
+BLECharacteristic* extra_leak_characteristic = NULL;
 #endif
 bool device_connected = false;
 bool old_device_connected = false;
@@ -217,6 +226,9 @@ static void init_sensors() {
 #if defined SOIL_SERVICE_UUID
     init_soil();
 #endif
+#if defined EXTRA_SERVICE_UUID
+    init_extra();
+#endif
     Serial.println("done.");
 }
 
@@ -234,12 +246,7 @@ static void init_ble() {
 
     BLEDevice::init(LB_TAG);
 
-    // Improve the range https://community.openmqttgateway.com/t/esp32-ble-range/249/10
-    esp_err_t errRc=esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
-    // without the following the range was only slightly better on our device (DevKit v1)
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN, ESP_PWR_LVL_P9);
-//    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_NUM, ESP_PWR_LVL_P9);
+    BLEDevice::setPower(ESP_PWR_LVL_P9);
 
     ble_server = BLEDevice::createServer();
     ble_server->setCallbacks(new LBMServerCallbacks());
@@ -258,10 +265,16 @@ static void init_ble() {
             SUBJECT_TYPE_UUID_UUID, BLECharacteristic::PROPERTY_READ
     );
     subject_warn_characteristic = subject_service->createCharacteristic(
-            SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ
+            SUBJECT_LED_WARN_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_NOTIFY
     );
-    subject_show_characteristic = subject_service->createCharacteristic(
-            SUBJECT_LED_SHOW_UUID, BLECharacteristic::PROPERTY_READ |
+    subject_health_characteristic = subject_service->createCharacteristic(
+            SUBJECT_LED_HEALTH_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_NOTIFY
+    );
+    subject_identify_characteristic = subject_service->createCharacteristic(
+            SUBJECT_LED_IDENTIFY_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
 #if defined LIGHT_SERVICE_UUID
@@ -276,6 +289,9 @@ static void init_ble() {
 #if defined SOIL_SERVICE_UUID
     init_ble_soil(ble_server);
 #endif
+#if defined EXTRA_SERVICE_UUID
+    init_ble_extra(ble_server);
+#endif
 
 //    subject_uuid_characteristic->addDescriptor(new BLE2902());
     subject_uuid_characteristic->setValue(SUBJECT_UUID);
@@ -283,14 +299,14 @@ static void init_ble() {
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
     subject_warn_characteristic->setValue("0");
-    subject_show_characteristic->setValue("0");
+    subject_health_characteristic->setValue("good");
+    subject_identify_characteristic->setValue("0");
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
     ble_advertising->addServiceUUID(SUBJECT_SERVICE_UUID);
     ble_advertising->setScanResponse(true);
-    ble_advertising->setMinPreferred(0x0);
-    ble_advertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
-    ble_advertising->setMinPreferred(0x12);
+    ble_advertising->setMinPreferred(0x06);
+    ble_advertising->setMaxPreferred(0x12);
     BLEDevice::startAdvertising();
 }
 
@@ -299,7 +315,7 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
     if (device_connected) {
         characteristic->setValue(value);
         characteristic->notify();
-        delay(3); // Based on BLEnotify: bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
+        delay(333);
     }
     // disconnecting
     if (!device_connected && old_device_connected) {
@@ -314,25 +330,109 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
     }
 }
 
+void status_loop(void* parameters) {
+
+    for (;;) {
+//        Serial.print("Status action task is running on core ");
+//        Serial.print(xPortGetCoreID());
+//        Serial.println(".");
+        status_led();
+    }
+}
+
+void status_led() {
+
+    // in case the user searches the lifebasemeter in the field
+    int identify = strtol(
+        subject_identify_characteristic->getValue().c_str(), NULL, 10);
+    set_ble_characteristic(subject_identify_characteristic, "0");
+    for (int i = 0; i < identify; i++) {
+        Serial.print("Greeting the user: 'Heeeeello, over heeere!'");
+        for (int j = 0; j < 256; j++) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, j);
+            delay(1);
+        }
+        for (int j = 255; j > 0; j--) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, j);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, j);
+            delay(1);
+        }
+    }
+    // under 'unstable conditions' show a blinking warning
+    if (water_flow_force_stop > 0) {
+        // tell the user to stop watering (or that some problem exists..)
+        for (int i = 128; i < 256; i++) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
+            delay(24);
+        }
+    } else if (water_flow_start > 0) {
+        // tell the user to play the pump (or that it is pumping..)
+        for (int i = 128; i > 0; i--) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, i);
+            delay(1);
+        }
+    } else {
+        // under 'stable conditions', just show the status
+        String health = subject_health_characteristic->getValue().c_str();
+        Serial.print("The overall health condition of this setup is ");
+        Serial.print(health);
+        Serial.println(".");
+        if (health == "good") {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else if (health == "sick") {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        }
+        delay(SUBJECT_STATUS_LOOP);
+    }
+}
+
 void setup() {
 
     Serial.begin(115200);
     init_ble();
     init_sensors();
 
-#if defined WATER_SERVICE_UUID
-    // usStackDepth: 10000
+    ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,
+                                        SUBJECT_LED_RESOLUTION);
+    ledcSetup(SUBJECT_LED_CHANNEL_GREEN, SUBJECT_LED_FREQUENCY,
+                                        SUBJECT_LED_RESOLUTION);
+    ledcSetup(SUBJECT_LED_CHANNEL_BLUE, SUBJECT_LED_FREQUENCY,
+                                        SUBJECT_LED_RESOLUTION);
+    ledcAttachPin(SUBJECT_LED_RED_PIN, SUBJECT_LED_CHANNEL_RED);
+    ledcAttachPin(SUBJECT_LED_GREEN_PIN, SUBJECT_LED_CHANNEL_GREEN);
+    ledcAttachPin(SUBJECT_LED_BLUE_PIN, SUBJECT_LED_CHANNEL_BLUE);
+
+    // usStackDepth: 8000
     // last parameter: core
-    xTaskCreatePinnedToCore(watering_loop, "WateringTask", 10000, NULL, 0,
+    xTaskCreatePinnedToCore(status_loop, "StatusTask", 8000, NULL, 0,
+        &StatusTask, 0);
+
+#if defined WATER_SERVICE_UUID
+    xTaskCreatePinnedToCore(watering_loop, "WateringTask", 8000, NULL, 0,
         &WateringTask, 0);
 #endif
 }
 
 void loop() {
     Serial.println("--");
-    Serial.print("Main task running on core ");
-    Serial.print(xPortGetCoreID());
-    Serial.println(".");
+//    Serial.print("Main task running on core ");
+//    Serial.print(xPortGetCoreID());
+//    Serial.println(".");
 
     // set the resolution for all analog sensors
     analogReadResolution(ANALOG_RESOLUTION);
@@ -350,6 +450,9 @@ void loop() {
 #endif
 #if defined WATER_SERVICE_UUID
     get_water_info();
+#endif
+#if defined EXTRA_SERVICE_UUID
+    get_extra_info();
 #endif
 
     // now, just wait for the next loop

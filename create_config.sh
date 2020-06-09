@@ -22,10 +22,14 @@ builddir="build"
 
 # default service settings
 lightservce="on"
+luxmeter="2591"
+
 airservice="on"
 waterservice="on"
 soilservice="on"
 extraservice="off"
+
+pump_mode=0
 
 # helper vars
 subject=()
@@ -46,8 +50,8 @@ fi
 #*  usage: $0 [options] [subjectname[:subjectuuid] [subjecttypename[:subjecttypeuuid]]]
 #*    options:
 
-for s in $@ ; do
-    case $1 in
+while true ; do
+    case "$1" in
 #*      -a/-A               turn airservice (on)/off
         -a)
             airservice="on"
@@ -69,7 +73,21 @@ for s in $@ ; do
         -L)
             lightservice="off"
         ;;
-#*      -s/-S               turn waterservice (on)/off
+#*      --luxmeter sensor   choose a sensor model, currently supported are:
+#*                          2561, 2591
+        --luxmeter)
+            shift
+            luxmeter="$1"
+        ;;
+#*      --pump-on/--pump-int
+#*      -p/-P/              pump continuously or in intervals
+        -p|--pump-on)
+            pump_mode=0
+        ;;
+        -P|--pump-int)
+            pump_mode=1
+        ;;
+#*      -s/-S               turn soilservice (on)/off
         -s)
             soilservice="on"
         ;;
@@ -103,9 +121,12 @@ for s in $@ ; do
             let i++
             subject[i]=${s[1]}
             let i++
-            shift
+        ;;
+        *)
+            break
         ;;
     esac
+    shift
 done
 
 subjectname=${subject[0]}
@@ -124,6 +145,9 @@ fi
 
 configfilename="$configsdir/lifebase-meter-$(echo $subjectname | sed 's;\s;;g').conf"
 
+##TODO split this tool ...
+
+# here we create a config file per device
 if [ -f $configfilename ] ; then
     if [ -n "$subjectuuid$subjecttype$subjecttypeuuid" ] ; then
         echo "Error: a configuration file already existed but you provided additional infos - exiting"
@@ -154,18 +178,20 @@ else
             subjecttypeuuid=$a
         fi
     fi
-    sed -e 's/SUBJECT_NAME=""/SUBJECT_NAME="'$subjectname'"/' \
+    sed -e 's/SUBJECT_NAME=""/SUBJECT_NAME="'"$subjectname"'"/' \
             -e 's/SUBJECT_UUID=""/SUBJECT_UUID="'$subjectuuid'"/' \
-            -e 's/SUBJECT_TYPE_NAME=""/SUBJECT_TYPE_NAME="'$subjecttypename'"/' \
+            -e 's/SUBJECT_TYPE_NAME=""/SUBJECT_TYPE_NAME="'"$subjecttypename"'"/' \
             -e 's/SUBJECT_TYPE_UUID=""/SUBJECT_TYPE_UUID="'$subjecttypeuuid'"/' \
             -e 's/LIGHT_SERVICE=""/LIGHT_SERVICE="'$lightservce'"/' \
             -e 's/AIR_SERVICE=""/AIR_SERVICE="'$airservice'"/' \
             -e 's/WATER_SERVICE=""/WATER_SERVICE="'$waterservice'"/' \
+            -e 's/PUMP_MODE=[0-9]*/PUMP_MODE='$pump_mode'/' \
             -e 's/SOIL_SERVICE=""/SOIL_SERVICE="'$soilservice'"/' \
             -e 's/EXTRA_SERVICE=""/EXTRA_SERVICE="'$extraservice'"/' \
                 $configexamplename > $configfilename
 fi
 
+# here we generate the code for each device
 if [ -f "$configfilename" ] ; then
 
     vars=( $(awk '/^[_0-9a-zA-Z]**="?[-_+#0-9a-zA-Z]*"?$/ {print $0}' $configfilename) )
