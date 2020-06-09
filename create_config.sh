@@ -107,12 +107,12 @@ while true ; do
             exit 0
         ;;
 #*      -h | --help         print this help
-        -*)
-            grep "^#\* " $0 | sed 's;^#\*;;'
+        -h|--help)
+            grep "^#\* " $0 | sed -e 's;^#\*;;' -e 's;$0;'$0';'
             exit 0
         ;;
         -*)
-            grep "^#\* " $0 | sed 's;^#\*;;'
+            grep "^#\* " $0 | sed -e 's;^#\*;;' -e 's;$0;'$0';'
             exit 1
         ;;
         ?*)
