@@ -4,16 +4,18 @@ if [ $1 == debug ] ; then
     shift
 fi
 #** Version: 0.2
-#* This script prepares a custom configuration for a
-#* certain LifeBase setup with an ESP32.
-#* To change a preexisting configuration file, please
+#*  This script prepares a custom configuration for a
+#* certain LifeBase setup with an ESP32 in the `configs`
+#* folder and prepares then the loadable code under
+#* the `build` folder.
+#*  To change a preexisting configuration file, please
 #* remove it first as we will not overwrite existing
 #* values.
 
 # configurable stuff
 lifebaseprefix="lifebase_meter"
 
-configexamplename="$lifebaseprefix-example.conf"
+configexamplename="${lifebaseprefix}-.conf.stub"
 configsdir="configs"
 
 codedir="arduino-ide/$lifebaseprefix"
