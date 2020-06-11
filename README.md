@@ -6,13 +6,13 @@ This project is an skeleton implementation of an environment meter
 that can be used to monitor (and adapt) the surrounding of living
 systems.
 
-The hardware is based on espressif's[1] wonderful ESP32[2] and
-we use the development board from DOIT[3] (DOIT ESP32 DEVKIT V1).
+The hardware is based on espressif's[1](#1) wonderful ESP32[2](#2) and
+we use the development board from DOIT[3](#3) (DOIT ESP32 DEVKIT V1).
 
-The current setup consists of just the following sensors
+The current standard setup consists of just the following sensors
 
-  * DHT22 - humidity and temperature sensor
-  * TSL2561 - to measure the light exposure
+  * DHT22 - humidity[10](#10) and temperature sensor
+  * TSL2591/TSL2561[10](#10) - to measure the light exposure
   * some capacitive soil moisture meter
   * some float switch to measure the water level and actuators
   * a pump
@@ -21,8 +21,8 @@ The current setup consists of just the following sensors
 
 ### Arduino IDE
 
-As my toolchain with the ESP IDF stopped working at
-a certain point. I tried out the Arduino IDE which
+As my toolchain with the ESP IDF[4](#4) stopped working at
+a certain point. I tried out the Arduino[8](#8) IDE which
 immediately just did work.
 As I am not very happy with this solution, I will
 try again with the ESP IDF later, but for now
@@ -36,10 +36,10 @@ we recommend using this solution:
   * Add the libraries
     * Go to: "Sketch", "Include Library", "Manage Libraries"
     * Choose:
-      * "Adafruit Unified Sensor"
-      * "DHT sensor library"
+      * "Adafruit Unified Sensor"[11](#11)
+      * "DHT sensor library"[12](#12)
       * "ESP32"
-      * "ESP32 BLE Arduino"
+      * "ESP32 BLE Arduino"[9](#9)
       * "Adafruit TSL2591" (or TSL2561 resp.)
 
 The development itself is done in the subfolder called `arduino-ide`,
@@ -52,7 +52,7 @@ below.
 
 ### ESP IDF
 
-*Warning* This section is currently not working. See the
+*Warning* This section (ESP IDF[4](#4) is currently not working. See the
 Arduino IDE section above..
 
 
@@ -99,7 +99,7 @@ Any bug report or feature request is warmly welcome via
 the issue tracker here.
 
 At the moment we have not quite decided yet how to handle
-all the values recieved from the sensors - e.g. while for
+all the value's units recieved from the sensors - e.g. while for
 light it is easy (i.e. Lux), we have absolutely no idea
 how to handle
 soil moisture. As a pragmatic approach we will just use
@@ -108,18 +108,25 @@ later replace it with the definite unit. Let's say, if
 the BLE unit characteristic is not set, it is assumed
 to be a temporarily percentage value.
 
+Another problem poses the interpretation of the values.
+E.g. with different soil types we have a different behavior
+of moisture --
+or with different lifeforms, we have different interpretations
+for the light conditions. The plants do not care too much about
+Lux, and their needs also differ between species and life phases.
+
 ---
-    [1] https://www.espressif.com/
-    [2] https://docs.espressif.com/projects/esp-idf/en/latest/hw-reference/index.html
-    [3] http://doit.am
-    [4] https://github.com/espressif/esp-idf.git
-    [5] https://docs.espressif.com/projects/esp-idf/en/latest/
-    [6] https://github.com/espressif/crosstool-NG.git
-    [7] https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#setup-toolchain
-    [8] https://www.arduino.cc/
-    [9] https://github.com/espressif/arduino-esp32.git
-    [10] http://adafruit.com/
-    [11] https://github.com/adafruit/Adafruit\_Sensor
-    [12] https://github.com/adafruit/DHT-sensor-library
-    [13] https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html
-    [14] https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md
+  1. <a name="1" href="https://www.espressif.com/">https://www.espressif.com/</a>
+  1. <a name="2" href="https://docs.espressif.com/projects/esp-idf/en/latest/hw-reference/index.html">https://docs.espressif.com/projects/esp-idf/en/latest/hw-reference/index.html</a>
+  1. <a name="3" href="http://doit.am">http://doit.am</a>
+  1. <a name="4" href="https://github.com/espressif/esp-idf.git">https://github.com/espressif/esp-idf.git</a>
+  1. <a name="5" href="https://docs.espressif.com/projects/esp-idf/en/latest/">https://docs.espressif.com/projects/esp-idf/en/latest/</a>
+  1. <a name="6" href="https://github.com/espressif/crosstool-NG.git">https://github.com/espressif/crosstool-NG.git</a>
+  1. <a name="7" href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#setup-toolchain">https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#setup-toolchain</a>
+  1. <a name="8" href="https://www.arduino.cc/">https://www.arduino.cc/</a>
+  1. <a name="9" href="https://github.com/espressif/arduino-esp32.git">https://github.com/espressif/arduino-esp32.git</a>
+  1. <a name="10" href="http://adafruit.com/">http://adafruit.com/</a>
+  1. <a name="11" href="https://github.com/adafruit/Adafruitb_Sensor">https://github.com/adafruit/Adafruit_Sensor</a>
+  1. <a name="12" href="https://github.com/adafruit/DHT-sensor-library">https://github.com/adafruit/DHT-sensor-library</a>
+  1. <a name="13" href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html">https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html</a>
+  1. <a name="14" href="https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md">https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md</a>
