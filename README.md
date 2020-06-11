@@ -42,13 +42,56 @@ we recommend using this solution:
       * "ESP32 BLE Arduino"
       * "Adafruit TSL2591" (or TSL2561 resp.)
 
-The development is in the subfolder calles `arduino-ide`, just
-open the main .ino file in your IDE.
+The development itself is done in the subfolder called `arduino-ide`,
+just open the main .ino file in your IDE - or in your favorite
+editor.
+
+To upload/run the code there are some further steps needed,
+please see the section ['Running the Code'](#running-the-code)
+below.
 
 ### ESP IDF
 
 *Warning* This section is currently not working. See the
 Arduino IDE section above..
+
+
+## Running the Code
+
+Prior to using the code on your ESP32, you will have to individualize
+the installation. There are a few things that you will have to define
+for the project to be usable, this is first and foremost the individual
+UUID per device, but also which services should be enabled/disabled
+and how they will be propagated later. You can easily identify all the
+places in the code by searching their placeholders double wrapped in
+braces (curly brackets), e.g. something like: '{{ FOO\_BAR }}'.
+
+We have created a custom (bash) shell script for this purpose. This is a quick
+and dirty solution which will have to be replaced in the future, but for the
+moment it is quite handy for us. If you do not have access to a bash, you
+will have to change the values manually/semi-manually. This is how to use
+the script.
+
+Change to the top folder of your project, where you will find both
+files, the script `create_config.sh` and an empty config
+`lifebase_meter-example.conf`. You can execute the script to get some
+idea with the help option:
+
+    $ ./create_config.sh --help
+
+For a standard installation with a random UUID one could run this:
+
+    $ ./create_config.sh Foobar
+
+This command would then create a customized installation and a configfile
+for future builds under the folder `build` as follows:
+
+    $ ls build/
+    lifebase_meter-Foobar
+
+The resulting arduino project `lifebase_meter-Foobar.ino` can then be loaded
+from within the Arduino IDE and flashed onto the ESP32 as usual.
+
 
 ## Bugs
 
