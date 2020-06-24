@@ -3,7 +3,8 @@ if [ $1 == debug ] ; then
     set -x
     shift
 fi
-#** Version: 0.2
+version="0.3"
+#** Version: 0.3
 #*  This script prepares a custom configuration for a
 #* certain LifeBase setup with an ESP32 in the `configs`
 #* folder and prepares then the loadable code under
@@ -21,6 +22,20 @@ configsdir="configs"
 codedir="arduino-ide/$lifebaseprefix"
 mainfile="$codedir/$lifebaseprefix.ino"
 builddir="build"
+
+# connectivity
+ble="on"
+wifi="off"
+mqtt="off"
+
+wifi_ssid=""
+wifi_password=""
+
+mqtt_broker=""
+mqtt_port=""
+mqtt_namespace=""
+mqtt_user=""
+mqtt_password=""
 
 # default service settings
 lightservce="on"
@@ -61,6 +76,16 @@ while true ; do
         -A)
             airservice="off"
         ;;
+#*      --ble enable        turn BLE (on)/off
+        --ble)
+            shift
+            if [ "$1" == "on" ] || [ "$1" == "off" ] ; then
+                ble="$1"
+            else
+                echo "Please set '--ble' to either 'on' or 'off'"
+                exit 1
+            fi
+        ;;
 #*      -e|-E               turn extraservice on/(off)
         -e)
             extraservice="on"
@@ -80,6 +105,18 @@ while true ; do
         --luxmeter)
             shift
             luxmeter="$1"
+        ;;
+#*      --mqtt enable       turn mqtt on/(off)
+        --mqtt)
+            if [ "$1" == "on" ] ; then
+                wifi="on"
+                mqtt="on"
+            elif [ "$1" == "off" ] ; then
+                mqtt="off"
+            else
+                echo "Please set '--mqtt' to either 'on' or 'off'"
+                exit 1
+            fi
         ;;
 #*      --pump-on/--pump-int
 #*      -p/-P/              pump continuously or in intervals
@@ -102,6 +139,15 @@ while true ; do
         ;;
         -W)
             waterservice="off"
+        ;;
+#*      --wifi enable       turn wifi on/(off)
+        --wifi)
+            if [ "$1" == "on" ] | [ "$1" == "off" ] ; then
+                wifi="$1"
+            else
+                echo "Please set '--wifi' to either 'on' or 'off'"
+                exit 1
+            fi
         ;;
 #*      -v | --version      print version information
         -v|--version)
@@ -151,6 +197,11 @@ configfilename="$configsdir/lifebase-meter-$(echo $subjectname | sed 's;\s;;g').
 
 # here we create a config file per device
 if [ -f $configfilename ] ; then
+    cfg_version=$(grep "version=" $configfilename)
+    cfg_version=${cfg_version#config_version=}
+    if [ "$version" != "$config_version" ] ; then
+        echo "Error: the version of the preexisting config file is not compatible with this script, please merge manually"
+    fi
     if [ -n "$subjectuuid$subjecttype$subjecttypeuuid" ] ; then
         echo "Error: a configuration file already existed but you provided additional infos - exiting"
         exit 1

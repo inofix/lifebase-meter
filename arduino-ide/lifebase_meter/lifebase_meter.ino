@@ -152,6 +152,12 @@ TaskHandle_t WateringTask;
 #define EXTRA_LEAK_PIN 33
 #endif
 
+// WiFi includes
+#include <WiFi.h>
+
+// WiFi-MQTT includes
+#include <PubSubClient.h>
+
 // BLE includes
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -159,6 +165,24 @@ TaskHandle_t WateringTask;
 #include <BLE2902.h>
 #include <BLE2904.h>
 
+// WiFi variables
+//TODO Make this configurable over BLE (and store it over reboot)
+const char* wifi_ssid = "{{ WIFI_SSID }}";
+const char* wifi_password = "{{ WIFI_PASSWORD }}";
+
+WiFiClient wifi_client;
+
+// MQTT variables
+const char* mqtt_broker = "{{ MQTT_BROKER }}";
+const int mqtt_port = {{ MQTT_PORT }};
+const char* mqtt_namespace = "{{ MQTT_NAMESPACE }}";
+//TODO implement cert based auth too
+const char* mqtt_user = "{{ MQTT_USER }}"
+const char* mqtt_password = "{{ MQTT_PASSWORD }}"
+
+PubSubClient mqtt_client(wifi_client);
+
+// BLE variables
 BLEServer* ble_server = NULL;
 BLECharacteristic* subject_uuid_characteristic = NULL;
 BLECharacteristic* subject_name_characteristic = NULL;
@@ -241,6 +265,25 @@ class LBMServerCallbacks: public BLEServerCallbacks {
       device_connected = false;
     }
 };
+
+static void init_wifi() {
+
+    WiFi.begin(wifi_ssid, wifi_password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.println("Connecting to WiFi...");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected!");
+    Serial.print("IP address is: ");
+    Serial.println(WiFi.localIP());
+}
+
+//static void init_mqtt() {
+
+//}
 
 static void init_ble() {
 
