@@ -224,7 +224,18 @@ else
         fi
     fi
     if [ -z "$subjecttypeuuid" ] ; then
-        subjecttypeuuid=$(uuidgen)
+        for f in $configsdir/* ; do
+            grep 'SUBJECT_TYPE_NAME="'"$subjecttypename"'"' $f ; retval=$?
+            if [ $retval -eq 0 ] ; then
+                s=$(grep 'SUBJECT_TYPE_UUID=' $f)
+                subjecttypeuuid=${s#SUBJECT_TYPE_UUID=}
+                subjecttypeuuid=${subjecttypeuuid//\"/}
+                echo "I found a config with this type already, it has the following type-UUID: $subjecttypeuuid"
+            fi
+        done
+        if [ "$subjecttypeuuid" == "" ] ; then
+            subjecttypeuuid=$(uuidgen)
+        fi
         echo "Please provide a UUID for the type of this device [$subjecttypeuuid]:"
         read a
         if [ -n "$a" ] ; then
