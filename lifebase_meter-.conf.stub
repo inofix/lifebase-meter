@@ -10,7 +10,7 @@ SUBJECT_TYPE_UUID=""
 ###### Connectivity ######
 BLE_ENABLE="on"
 WIFI_ENABLE="off"
-MQTT_ENABLE="on"
+MQTT_ENABLE="off"
 
 WIFI_SSID=""
 WIFI_PASSWORD=""

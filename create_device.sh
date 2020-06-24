@@ -32,7 +32,7 @@ wifi_ssid=""
 wifi_password=""
 
 mqtt_broker=""
-mqtt_port=""
+mqtt_port="1883"
 mqtt_namespace=""
 mqtt_user=""
 mqtt_password=""
@@ -108,6 +108,7 @@ while true ; do
         ;;
 #*      --mqtt enable       turn mqtt on/(off)
         --mqtt)
+            shift
             if [ "$1" == "on" ] ; then
                 wifi="on"
                 mqtt="on"
@@ -142,7 +143,8 @@ while true ; do
         ;;
 #*      --wifi enable       turn wifi on/(off)
         --wifi)
-            if [ "$1" == "on" ] | [ "$1" == "off" ] ; then
+            shift
+            if [ "$1" == "on" ] || [ "$1" == "off" ] ; then
                 wifi="$1"
             else
                 echo "Please set '--wifi' to either 'on' or 'off'"
@@ -199,7 +201,8 @@ configfilename="$configsdir/lifebase-meter-$(echo $subjectname | sed 's;\s;;g').
 if [ -f $configfilename ] ; then
     cfg_version=$(grep "version=" $configfilename)
     cfg_version=${cfg_version#config_version=}
-    if [ "$version" != "$config_version" ] ; then
+    cfg_version=${cfg_version//\"/}
+    if [ "$version" != "$cfg_version" ] ; then
         echo "Error: the version of the preexisting config file is not compatible with this script, please merge manually"
     fi
     if [ -n "$subjectuuid$subjecttype$subjecttypeuuid" ] ; then
@@ -242,6 +245,45 @@ else
             subjecttypeuuid=$a
         fi
     fi
+    if [ "$wifi" == "on" ] ; then
+        echo "Please provide the SSID for your WiFi network:"
+        read a
+        if [ -n "$a" ] ; then
+            wifi_ssid="$a"
+        fi
+        echo "Please provide the PSK for your WiFi network:"
+        read a
+        if [ -n "$a" ] ; then
+            wifi_password="$a"
+        fi
+    fi
+    if [ "$mqtt" == "on" ] ; then
+        echo "Please provide the address for your MQTT broker:"
+        read a
+        if [ -n "$a" ] ; then
+            mqtt_broker="$a"
+        fi
+        echo "Please provide the port for your MQTT broker [$mqtt_port]:"
+        read a
+        if [ -n "$a" ] ; then
+            mqtt_port="$a"
+        fi
+        echo "Please provide the namespace for your MQTT topic"
+        read a
+        if [ -n "$a" ] ; then
+            mqtt_namespace="$a"
+        fi
+        echo "Please provide the user to connect to your MQTT broker"
+        read a
+        if [ -n "$a" ] ; then
+            mqtt_user="$a"
+        fi
+        echo "Please provide the password to connect to your MQTT broker"
+        read a
+        if [ -n "$a" ] ; then
+            mqtt_password="$a"
+        fi
+    fi
     sed -e 's/SUBJECT_NAME=""/SUBJECT_NAME="'"$subjectname"'"/' \
             -e 's/SUBJECT_UUID=""/SUBJECT_UUID="'$subjectuuid'"/' \
             -e 's/SUBJECT_TYPE_NAME=""/SUBJECT_TYPE_NAME="'"$subjecttypename"'"/' \
@@ -252,8 +294,19 @@ else
             -e 's/PUMP_MODE=[0-9]*/PUMP_MODE='$pump_mode'/' \
             -e 's/SOIL_SERVICE=""/SOIL_SERVICE="'$soilservice'"/' \
             -e 's/EXTRA_SERVICE=""/EXTRA_SERVICE="'$extraservice'"/' \
+            -e 's/BLE_ENABLE=".*"/BLE_ENABLE="'$ble'"/' \
+            -e 's/WIFI_ENABLE=".*"/WIFI_ENABLE="'$wifi'"/' \
+            -e 's/WIFI_SSID=""/WIFI_SSID="'$wifi_ssid'"/' \
+            -e 's/WIFI_PASSWORD=""/WIFI_PASSWORD="'$wifi_password'"/' \
+            -e 's/MQTT_ENABLE=".*"/MQTT_ENABLE="'$mqtt'"/' \
+            -e 's/MQTT_BROKER=""/MQTT_BROKER="'$mqtt_broker'"/' \
+            -e 's/MQTT_PORT=""/MQTT_PORT="'$mqtt_port'"/' \
+            -e 's/MQTT_NAMESPACE=""/MQTT_NAMESPACE="'$mqtt_namespace'"/' \
+            -e 's/MQTT_USER=""/MQTT_USER="'$mqtt_user'"/' \
+            -e 's/MQTT_PASSWORD=""/MQTT_PASSWORT="'$mqtt_password'"/' \
                 $configexamplename > $configfilename
 fi
+#TODO fix missing, e.g. BLE/WIFI/MQTT enable/disable
 
 # here we generate the code for each device
 if [ -f "$configfilename" ] ; then
