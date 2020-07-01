@@ -165,20 +165,32 @@ TaskHandle_t WateringTask;
 #include <BLE2902.h>
 #include <BLE2904.h>
 
+#define WIFI_DEFAULT_SSID "{{ WIFI_DEFAULT_SSID }}"
+#define WIFI_DEFAULT_PASSWORD "{{ WIFI_DEFAULT_PASSWORD }}"
+
+#define WIFI_MQTT_DEFAULT_BROKER "{{ WIFI_MQTT_DEFAULT_BROKER }}"
+#define WIFI_MQTT_DEFAULT_PORT {{ WIFI_MQTT_DEFAULT_PORT }}
+#define WIFI_MQTT_DEFAULT_NAMESPACE "{{ WIFI_MQTT_DEFAULT_NAMESPACE }}"
+#define WIFI_MQTT_DEFAULT_USER "{{ WIFI_MQTT_DEFAULT_USER }}"
+#define WIFI_MQTT_DEFAULT_PASSWORD "{{ WIFI_MQTT_DEFAULT_PASSWORD }}"
+
 // WiFi variables
 //TODO Make this configurable over BLE (and store it over reboot)
-const char* wifi_ssid = "{{ WIFI_SSID }}";
-const char* wifi_password = "{{ WIFI_PASSWORD }}";
+//TODO We need BLE/WiFi enable/disable
+//TODO We need a service for the connections that logs the connections too
+//TODO Use #define to set an inital/default ssid etc.
+char* wifi_ssid = WIFI_DEFAULT_SSID;
+char* wifi_password = WIFI_DEFAULT_PASSWORD;
 
 WiFiClient wifi_client;
 
 // MQTT variables
-const char* mqtt_broker = "{{ MQTT_BROKER }}";
-const int mqtt_port = {{ MQTT_PORT }};
-const char* mqtt_namespace = "{{ MQTT_NAMESPACE }}";
+char* mqtt_broker = WIFI_MQTT_DEFAULT_BROKER;
+int mqtt_port = WIFI_MQTT_DEFAULT_PORT;
+char* mqtt_namespace = WIFI_MQTT_DEFAULT_NAMESPACE;
 //TODO implement cert based auth too
-const char* mqtt_user = "{{ MQTT_USER }}"
-const char* mqtt_password = "{{ MQTT_PASSWORD }}"
+char* mqtt_user = WIFI_MQTT_DEFAULT_USER;
+char* mqtt_password = WIFI_MQTT_DEFAULT_PASSWORD;
 
 PubSubClient mqtt_client(wifi_client);
 
@@ -266,19 +278,78 @@ class LBMServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-static void init_wifi() {
+static bool check_wifi_status() {
 
-    WiFi.begin(wifi_ssid, wifi_password);
+    // Just enough time to travel to the moon, or get a connection to the AP..
+    delay(2000);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.println("Connecting to WiFi...");
+    if (WiFi.status() == WL_CONNECTED) {
+
+        Serial.println("");
+        Serial.println("WiFi is connected!");
+        Serial.print("The IP address is: ");
+        Serial.print(WiFi.localIP());
+        return true;
+    } else {
+        Serial.println("The WiFi connection is not ready (yet).");
+        return false;
+    }
+}
+
+static bool change_wifi(char* ssid, char* password) {
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        WiFi.disconnect();
     }
 
-    Serial.println("");
-    Serial.println("WiFi connected!");
-    Serial.print("IP address is: ");
-    Serial.println(WiFi.localIP());
+    Serial.print("Connecting '");
+    Serial.print(WiFi.getHostname());
+    Serial.print("' to the WiFi network '");
+    Serial.println(ssid);
+
+    WiFi.begin(ssid, password);
+
+    return check_wifi_status();
+}
+
+static bool init_wifi() {
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        return true;
+    }
+
+    Serial.print("Starting WiFi on '");
+    // Calling begin() twice, first as a workaround for #2501
+    // and to get access to SSID
+    WiFi.begin();
+    delay(500);
+
+    WiFi.setHostname(LB_TAG);
+
+    Serial.print(WiFi.getHostname());
+    Serial.println("'...");
+
+    // See if we already have a network defined, if not using default
+    if (WiFi.SSID() != "") {
+
+        Serial.print("Trying to connect to network: '");
+        Serial.print(WiFi.SSID());
+        Serial.println("'...");
+        WiFi.begin();
+    } else {
+        char* ssid = WIFI_DEFAULT_SSID;
+        char* password = WIFI_DEFAULT_PASSWORD;
+        if (ssid != "") {
+            Serial.print("Falling back to default network: '");
+            Serial.print(ssid);
+            Serial.println("'...");
+            WiFi.begin(ssid, password);
+        }
+    }
+
+    return check_wifi_status();
 }
 
 //static void init_mqtt() {
@@ -448,6 +519,8 @@ void setup() {
 
     Serial.begin(115200);
     init_ble();
+    //TODO see if we need to put this to 'status_loop()' in case connection is lost..
+    init_wifi();
     init_sensors();
 
     ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,

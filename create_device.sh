@@ -296,14 +296,14 @@ else
             -e 's/EXTRA_SERVICE=""/EXTRA_SERVICE="'$extraservice'"/' \
             -e 's/BLE_ENABLE=".*"/BLE_ENABLE="'$ble'"/' \
             -e 's/WIFI_ENABLE=".*"/WIFI_ENABLE="'$wifi'"/' \
-            -e 's/WIFI_SSID=""/WIFI_SSID="'$wifi_ssid'"/' \
-            -e 's/WIFI_PASSWORD=""/WIFI_PASSWORD="'$wifi_password'"/' \
-            -e 's/MQTT_ENABLE=".*"/MQTT_ENABLE="'$mqtt'"/' \
-            -e 's/MQTT_BROKER=""/MQTT_BROKER="'$mqtt_broker'"/' \
-            -e 's/MQTT_PORT=""/MQTT_PORT="'$mqtt_port'"/' \
-            -e 's/MQTT_NAMESPACE=""/MQTT_NAMESPACE="'$mqtt_namespace'"/' \
-            -e 's/MQTT_USER=""/MQTT_USER="'$mqtt_user'"/' \
-            -e 's/MQTT_PASSWORD=""/MQTT_PASSWORT="'$mqtt_password'"/' \
+            -e 's/WIFI_DEFAULT_SSID=""/WIFI_DEFAULT_SSID="'$wifi_ssid'"/' \
+            -e 's/WIFI_DEFAULT_PASSWORD=""/WIFI_DEFAULT_PASSWORD="'$wifi_password'"/' \
+            -e 's/WIFI_MQTT_ENABLE=".*"/WIFI_MQTT_ENABLE="'$mqtt'"/' \
+            -e 's/WIFI_MQTT_DEFAULT_BROKER=""/WIFI_MQTT_DEFAULT_BROKER="'$mqtt_broker'"/' \
+            -e 's/WIFI_MQTT_DEFAULT_PORT=""/WIFI_MQTT_DEFAULT_PORT="'$mqtt_port'"/' \
+            -e 's/WIFI_MQTT_DEFAULT_NAMESPACE=""/WIFI_MQTT_DEFAULT_NAMESPACE="'$mqtt_namespace'"/' \
+            -e 's/WIFI_MQTT_DEFAULT_USER=""/WIFI_MQTT_DEFAULT_USER="'$mqtt_user'"/' \
+            -e 's/WIFI_MQTT_DEFAULT_PASSWORD=""/WIFI_MQTT_DEFAULT_PASSWORD="'$mqtt_password'"/' \
                 $configexamplename > $configfilename
 fi
 #TODO fix missing, e.g. BLE/WIFI/MQTT enable/disable
