@@ -39,6 +39,10 @@ int main_loop_delay;
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
 #define SUBJECT_LED_HEALTH_UUID "{{ SUBJECT_LED_HEALTH_UUID }}"
+#define SUBJECT_HEALTH_GOOD "good"
+#define SUBJECT_HEALTH_BAD "bad"
+#define SUBJECT_HEALTH_CRITICAL "critical"
+#define SUBJECT_HEALTH_DEAD "dead"
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
 #define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
 
@@ -179,9 +183,8 @@ TaskHandle_t WateringTask;
 //TODO We need BLE/WiFi enable/disable
 //TODO We need a service for the connections that logs the connections too
 //TODO Use #define to set an inital/default ssid etc.
-char* wifi_ssid = WIFI_DEFAULT_SSID;
-char* wifi_password = WIFI_DEFAULT_PASSWORD;
 
+//TODO Use WiFiClientSecure instead for SSL/TLS connections
 WiFiClient wifi_client;
 
 // MQTT variables
@@ -244,6 +247,9 @@ float air_temperature = 20;
 // pumps/valves
 int water_flow_force_stop = 0;
 int water_flow_start = 0;
+
+// Status of the environement
+const char* health = "good";
 
 static void init_sensors() {
 
@@ -339,8 +345,8 @@ static bool init_wifi() {
         Serial.println("'...");
         WiFi.begin();
     } else {
-        char* ssid = WIFI_DEFAULT_SSID;
-        char* password = WIFI_DEFAULT_PASSWORD;
+        const char* ssid = WIFI_DEFAULT_SSID;
+        const char* password = WIFI_DEFAULT_PASSWORD;
         if (ssid != "") {
             Serial.print("Falling back to default network: '");
             Serial.print(ssid);
@@ -352,9 +358,59 @@ static bool init_wifi() {
     return check_wifi_status();
 }
 
-//static void init_mqtt() {
+//TODO - just for testing yet...
+static bool init_mqtt() {
 
-//}
+    if (mqtt_broker == "") {
+        return false;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        if (!init_wifi()) {
+            return false;
+        }
+    }
+
+    mqtt_client.setServer(mqtt_broker, mqtt_port);
+    Serial.print("Connecting to MQTT '");
+    Serial.print(mqtt_user);
+    Serial.print("@");
+    Serial.print(mqtt_broker);
+    Serial.print(":");
+    Serial.print(mqtt_port);
+    Serial.print("': ");
+
+    delay(500);
+
+    if (mqtt_client.connect(LB_TAG, mqtt_user, mqtt_password)) {
+
+        Serial.println(" success!");
+        return true;
+    } else {
+
+        Serial.println(" failed...");
+        return false;
+    }
+}
+
+static void mqtt_publish(String topic, const char* value) {
+    if (!mqtt_client.connected()) {
+        if (!init_mqtt()) {
+
+            return;
+        }
+    }
+
+    String t = mqtt_namespace;
+    t += "/";
+    t += SUBJECT_TYPE_UUID_UUID;
+    t += "/";
+    t += SUBJECT_UUID_UUID;
+    t += "/";
+    t += topic;
+    mqtt_client.publish(t.c_str(), value);
+}
 
 static void init_ble() {
 
@@ -413,7 +469,7 @@ static void init_ble() {
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
     subject_warn_characteristic->setValue("0");
-    subject_health_characteristic->setValue("good");
+    subject_health_characteristic->setValue(health);
     subject_identify_characteristic->setValue("0");
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
@@ -494,15 +550,16 @@ void status_led() {
         }
     } else {
         // under 'stable conditions', just show the status
-        String health = subject_health_characteristic->getValue().c_str();
+        //TODO at the moment the health is only set by the user..
+        health = subject_health_characteristic->getValue().c_str();
         Serial.print("The overall health condition of this setup is ");
         Serial.print(health);
         Serial.println(".");
-        if (health == "good") {
+        if (health == SUBJECT_HEALTH_GOOD) {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-        } else if (health == "sick") {
+        } else if (health == SUBJECT_HEALTH_BAD) {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
@@ -570,6 +627,9 @@ void loop() {
 #if defined EXTRA_SERVICE_UUID
     get_extra_info();
 #endif
+
+    // report the overal health status of this setup
+    mqtt_publish(SUBJECT_LED_HEALTH_UUID, health);
 
     // now, just wait for the next loop
     delay(main_loop_delay);
