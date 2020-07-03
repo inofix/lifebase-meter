@@ -168,7 +168,7 @@ static void get_soil_info() {
     char soil_moisture_chars[3];
     dtostrf(soil_moisture, 3, 0, soil_moisture_chars);
     set_ble_characteristic(soil_moisture_characteristic, soil_moisture_chars);
-    mqtt_publish(SOIL_MOISTURE_UUID, soil_moisture);
+    mqtt_publish(SOIL_MOISTURE_UUID, soil_moisture_chars);
 }
 
 #endif

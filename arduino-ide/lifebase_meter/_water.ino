@@ -257,7 +257,7 @@ static void get_water_info() {
     char water_depth_chars[4];
     dtostrf(water_depth, 1, 3, water_depth_chars);
     set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
-    mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth);
+    mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
 
     // ask the float switches
     if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
