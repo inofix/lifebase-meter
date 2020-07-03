@@ -179,10 +179,12 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
         if (water_flow_force_stop == 0) {
             digitalWrite(pin, LOW);
             set_ble_characteristic(characteristic, "1");
+            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "1");
             Serial.println("Pumping...");
         } else {
             digitalWrite(pin, HIGH);
             set_ble_characteristic(characteristic, "0");
+            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
             Serial.println("Force stopping the pump...");
         }
         delay(loop_delay);
@@ -192,11 +194,13 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, LOW);
                 set_ble_characteristic(characteristic, "1");
+                mqtt_publish(WATER_CONTAINER_PUMP_UUID, "1");
                 Serial.println("Starting the pump...");
             }
             delay(loop_delay / 2);
             digitalWrite(pin, HIGH);
             set_ble_characteristic(characteristic, "0");
+            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
             Serial.println("Stopping the pump...");
             delay(loop_delay / 2);
         }
@@ -204,6 +208,7 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
     // pump is always off in this mode..
         digitalWrite(pin, HIGH);
         set_ble_characteristic(characteristic, "0");
+        mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
 //        Serial.println("Turning off the pump...");
         delay(loop_delay);
     }
@@ -252,6 +257,7 @@ static void get_water_info() {
     char water_depth_chars[4];
     dtostrf(water_depth, 1, 3, water_depth_chars);
     set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
+    mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth);
 
     // ask the float switches
     if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
@@ -260,6 +266,7 @@ static void get_water_info() {
             water_flow_force_stop--;
         }
         set_ble_characteristic(water_container_min_level_characteristic, "1");
+        mqtt_publish(WATER_CONTAINER_MIN_LEVEL_UUID, "1");
         Serial.println("The container is full enough for the watering pump.");
     } else {
         if (!is_lower_than) {
@@ -267,6 +274,7 @@ static void get_water_info() {
             water_flow_force_stop++;
         }
         set_ble_characteristic(water_container_min_level_characteristic, "0");
+        mqtt_publish(WATER_CONTAINER_MIN_LEVEL_UUID, "0");
         Serial.println("WARNING: please do fill the container!");
     }
 // currently disabled

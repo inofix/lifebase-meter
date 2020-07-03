@@ -394,7 +394,7 @@ static bool init_mqtt() {
     }
 }
 
-static void mqtt_publish(String topic, const char* value) {
+static void mqtt_publish(String uuid, const char* value) {
     if (!mqtt_client.connected()) {
         if (!init_mqtt()) {
 
@@ -408,7 +408,7 @@ static void mqtt_publish(String topic, const char* value) {
     t += "/";
     t += SUBJECT_UUID_UUID;
     t += "/";
-    t += topic;
+    t += uuid;
     mqtt_client.publish(t.c_str(), value);
 }
 
