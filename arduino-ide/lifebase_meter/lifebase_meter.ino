@@ -33,37 +33,55 @@ int main_loop_delay;
 #define ANALOG_RESOLUTION 16
 
 // subject service
+/// these are the UUID to distinguish the different elements/characteristics
+/// they stay the same for all installations - think of it as variable-names
+//// the UUID of the service
 #define SUBJECT_SERVICE_UUID "{{ SUBJECT_SERVICE_UUID }}"
+//// a custom name for the whole setup
 #define SUBJECT_NAME_UUID "{{ SUBJECT_NAME_UUID }}"
+//// a custom UUID for the whole setup
 #define SUBJECT_UUID_UUID "{{ SUBJECT_UUID_UUID }}"
+//// a type name for the whole setup
 #define SUBJECT_TYPE_NAME_UUID "{{ SUBJECT_TYPE_NAME_UUID }}"
+//// a type uuid for the whole setup
 #define SUBJECT_TYPE_UUID_UUID "{{ SUBJECT_TYPE_UUID_UUID }}"
+//// a status led for the whole setup
 #define SUBJECT_LED_HEALTH_UUID "{{ SUBJECT_LED_HEALTH_UUID }}"
+//// a warn led if something is wrong
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
 #define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
+/// these are the constants for the conditions and used e.g. for the status led
+#define SUBJECT_HEALTH_GOOD "good"
+#define SUBJECT_HEALTH_BAD "bad"
+#define SUBJECT_HEALTH_CRITICAL "critical"
+#define SUBJECT_HEALTH_DEAD "dead"
 
-// system constants per system/setup
+/// system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
 #define SUBJECT_NAME "{{ SUBJECT_NAME }}"
 #define SUBJECT_UUID "{{ SUBJECT_UUID }}"
 #define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
 #define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
+/// pin config
 #define SUBJECT_LED_RED_PIN 14
 #define SUBJECT_LED_GREEN_PIN 27
 #define SUBJECT_LED_BLUE_PIN 12
 #define SUBJECT_LED_CHANNEL_RED 0
 #define SUBJECT_LED_CHANNEL_GREEN 2
 #define SUBJECT_LED_CHANNEL_BLUE 4
+/// LED config
 #define SUBJECT_LED_FREQUENCY 5000
 #define SUBJECT_LED_RESOLUTION 8
+/// the time a status loop takes; this is fixed as it shares the resources of
+/// one cpu with the watering loop (and is seperate from the measurements)
 #define SUBJECT_STATUS_LOOP 8000
 TaskHandle_t StatusTask;
 
-/// measurements/action - #change# uncoment service UUIDs as needed
-///// light service configuration
+// measurements/action - #change# uncoment service UUIDs as needed - or use the script..
+// light service configuration
 //#define LIGHT_SERVICE_UUID "{{ LIGHT_SERVICE_UUID }}"
 #if defined LIGHT_SERVICE_UUID
-///// light sensor includes
+/// light sensor includes
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2561_U.h>
@@ -73,36 +91,47 @@ TaskHandle_t StatusTask;
 #define LIGHT_EXPOSURE_SENSOR {{ LIGHT_EXPOSURE_SENSOR }}
 #endif
 
-//// air service configuration
+// air service configuration
 //#define AIR_SERVICE_UUID "{{ AIR_SERVICE_UUID }}"
 #if defined AIR_SERVICE_UUID
 #define AIR_TEMPERATURE_UUID "{{ AIR_TEMPERATURE_UUID }}"
 #define AIR_HUMIDITY_UUID "{{ AIR_HUMIDITY_UUID }}"
-///// air sensor includes
+/// air sensor includes
 #include <DHT_U.h>
-///// air sensor constants
+/// air sensor constants
 #define DHTPIN 13
 #define DHTTYPE DHT22
 DHT_Unified dht(DHTPIN, DHTTYPE);
 #endif
 
-//// water service configuration
+// water service configuration
 //#define WATER_SERVICE_UUID "{{ WATER_SERVICE_UUID }}"
 #if defined WATER_SERVICE_UUID
-#define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
-#define WATERCONTAINERLEVELTRIGGERPIN 26
-#define WATERCONTAINERLEVELECHOPIN 25
-#define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
-#define WATERCONTAINERLEVELMINPIN 4
-#define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
-#define WATERCONTAINERLEVELMAXPIN 15
-#define WATER_CONTAINER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
+/// the ultrasonic sensor HC-SR04 measuremnt - distance sensor to surface
 #define WATER_CONTAINER_DISTANCE_UUID "{{ WATER_CONTAINER_DISTANCE_UUID }}"
+/// the calculated water level (depth) - distance surface to ground
+#define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
+/// the maximum possible depth - distance sensor to ground
 #define WATER_CONTAINER_DEPTH_UUID "{{ WATER_CONTAINER_DEPTH_UUID }}"
+/// min/max sensors - swimming sensors on/off
+#define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
+#define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
+/// actuator - the pump
+#define WATER_CONTAINER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
+/// thresholds to be set by the user
 #define WATER_CONTAINER_MIN_CRIT_UUID "{{ WATER_CONTAINER_MIN_CRIT_UUID }}"
 #define WATER_CONTAINER_MIN_WARN_UUID "{{ WATER_CONTAINER_MIN_WARN_UUID }}"
 #define WATER_CONTAINER_MAX_WARN_UUID "{{ WATER_CONTAINER_MAX_WARN_UUID }}"
 #define WATER_CONTAINER_MAX_CRIT_UUID "{{ WATER_CONTAINER_MAX_CRIT_UUID }}"
+
+/// pin config
+//// water container level: HC-SR04
+#define WATERCONTAINERLEVELTRIGGERPIN 26
+#define WATERCONTAINERLEVELECHOPIN 25
+//// water container swimming on/off sensors
+#define WATERCONTAINERLEVELMINPIN 4
+#define WATERCONTAINERLEVELMAXPIN 15
+//// water pump pin
 #define WATERPUMPPIN 2
 // switch between continuous and interval mode
 #define PUMP_MODE {{ PUMP_MODE }}
@@ -111,6 +140,7 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 TaskHandle_t WateringTask;
 #endif
 
+// soil service configuration
 //#define SOIL_SERVICE_UUID "{{ SOIL_SERVICE_UUID }}"
 #if defined SOIL_SERVICE_UUID
 #define SOIL_MOISTURE_UUID "{{ SOIL_MOISTURE_UUID }}"
@@ -146,11 +176,18 @@ TaskHandle_t WateringTask;
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
+// extra service configuration
 //#define EXTRA_SERVICE_UUID "{{ EXTRA_SERVICE_UUID }}"
 #if defined EXTRA_SERVICE_UUID
 #define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
 #define EXTRA_LEAK_PIN 33
 #endif
+
+// WiFi includes
+#include <WiFi.h>
+
+// WiFi-MQTT includes
+#include <PubSubClient.h>
 
 // BLE includes
 #include <BLEDevice.h>
@@ -159,6 +196,35 @@ TaskHandle_t WateringTask;
 #include <BLE2902.h>
 #include <BLE2904.h>
 
+#define WIFI_DEFAULT_SSID "{{ WIFI_DEFAULT_SSID }}"
+#define WIFI_DEFAULT_PASSWORD "{{ WIFI_DEFAULT_PASSWORD }}"
+
+#define WIFI_MQTT_DEFAULT_BROKER "{{ WIFI_MQTT_DEFAULT_BROKER }}"
+#define WIFI_MQTT_DEFAULT_PORT {{ WIFI_MQTT_DEFAULT_PORT }}
+#define WIFI_MQTT_DEFAULT_NAMESPACE "{{ WIFI_MQTT_DEFAULT_NAMESPACE }}"
+#define WIFI_MQTT_DEFAULT_USER "{{ WIFI_MQTT_DEFAULT_USER }}"
+#define WIFI_MQTT_DEFAULT_PASSWORD "{{ WIFI_MQTT_DEFAULT_PASSWORD }}"
+
+// WiFi variables
+//TODO Make this configurable over BLE (and store it over reboot)
+//TODO We need BLE/WiFi enable/disable
+//TODO We need a service for the connections that logs the connections too
+//TODO Use #define to set an inital/default ssid etc.
+
+//TODO Use WiFiClientSecure instead for SSL/TLS connections
+WiFiClient wifi_client;
+
+// MQTT variables
+char* mqtt_broker = WIFI_MQTT_DEFAULT_BROKER;
+int mqtt_port = WIFI_MQTT_DEFAULT_PORT;
+char* mqtt_namespace = WIFI_MQTT_DEFAULT_NAMESPACE;
+//TODO implement cert based auth too
+char* mqtt_user = WIFI_MQTT_DEFAULT_USER;
+char* mqtt_password = WIFI_MQTT_DEFAULT_PASSWORD;
+
+PubSubClient mqtt_client(wifi_client);
+
+// BLE variables
 BLEServer* ble_server = NULL;
 BLECharacteristic* subject_uuid_characteristic = NULL;
 BLECharacteristic* subject_name_characteristic = NULL;
@@ -209,6 +275,9 @@ float air_temperature = 20;
 int water_flow_force_stop = 0;
 int water_flow_start = 0;
 
+// Status of the environement
+const char* health = "good";
+
 static void init_sensors() {
 
     Serial.print("Initializing the sensors.. ");
@@ -241,6 +310,134 @@ class LBMServerCallbacks: public BLEServerCallbacks {
       device_connected = false;
     }
 };
+
+static bool check_wifi_status() {
+
+    // Just enough time to travel to the moon, or get a connection to the AP..
+    delay(2000);
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        Serial.println("");
+        Serial.println("WiFi is connected!");
+        Serial.print("The IP address is: ");
+        Serial.print(WiFi.localIP());
+        return true;
+    } else {
+        Serial.println("The WiFi connection is not ready (yet).");
+        return false;
+    }
+}
+
+static bool change_wifi(char* ssid, char* password) {
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        WiFi.disconnect();
+    }
+
+    Serial.print("Connecting '");
+    Serial.print(WiFi.getHostname());
+    Serial.print("' to the WiFi network '");
+    Serial.println(ssid);
+
+    WiFi.begin(ssid, password);
+
+    return check_wifi_status();
+}
+
+static bool init_wifi() {
+
+    if (WiFi.status() == WL_CONNECTED) {
+
+        return true;
+    }
+
+    Serial.print("Starting WiFi on '");
+    // Calling begin() twice, first as a workaround for #2501
+    // and to get access to SSID
+    WiFi.begin();
+    delay(500);
+
+    WiFi.setHostname(LB_TAG);
+
+    Serial.print(WiFi.getHostname());
+    Serial.println("'...");
+
+    // See if we already have a network defined, if not using default
+    if (WiFi.SSID() != "") {
+
+        Serial.print("Trying to connect to network: '");
+        Serial.print(WiFi.SSID());
+        Serial.println("'...");
+        WiFi.begin();
+    } else {
+        const char* ssid = WIFI_DEFAULT_SSID;
+        const char* password = WIFI_DEFAULT_PASSWORD;
+        if (ssid != "") {
+            Serial.print("Falling back to default network: '");
+            Serial.print(ssid);
+            Serial.println("'...");
+            WiFi.begin(ssid, password);
+        }
+    }
+
+    return check_wifi_status();
+}
+
+//TODO - just for testing yet...
+static bool init_mqtt() {
+
+    if (mqtt_broker == "") {
+        return false;
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+
+        if (!init_wifi()) {
+            return false;
+        }
+    }
+
+    mqtt_client.setServer(mqtt_broker, mqtt_port);
+    Serial.print("Connecting to MQTT '");
+    Serial.print(mqtt_user);
+    Serial.print("@");
+    Serial.print(mqtt_broker);
+    Serial.print(":");
+    Serial.print(mqtt_port);
+    Serial.print("': ");
+
+    delay(500);
+
+    if (mqtt_client.connect(LB_TAG, mqtt_user, mqtt_password)) {
+
+        Serial.println(" success!");
+        return true;
+    } else {
+
+        Serial.println(" failed...");
+        return false;
+    }
+}
+
+static void mqtt_publish(String uuid, const char* value) {
+    if (!mqtt_client.connected()) {
+        if (!init_mqtt()) {
+
+            return;
+        }
+    }
+
+    String t = mqtt_namespace;
+    t += "/";
+    t += SUBJECT_TYPE_UUID_UUID;
+    t += "/";
+    t += SUBJECT_UUID_UUID;
+    t += "/";
+    t += uuid;
+    mqtt_client.publish(t.c_str(), value);
+}
 
 static void init_ble() {
 
@@ -299,7 +496,7 @@ static void init_ble() {
     subject_type_characteristic->setValue(SUBJECT_TYPE_NAME);
     subject_type_id_characteristic->setValue(SUBJECT_TYPE_UUID);
     subject_warn_characteristic->setValue("0");
-    subject_health_characteristic->setValue("good");
+    subject_health_characteristic->setValue(health);
     subject_identify_characteristic->setValue("0");
     subject_service->start();
     BLEAdvertising *ble_advertising = BLEDevice::getAdvertising();
@@ -380,15 +577,16 @@ void status_led() {
         }
     } else {
         // under 'stable conditions', just show the status
-        String health = subject_health_characteristic->getValue().c_str();
+        //TODO at the moment the health is only set by the user..
+        health = subject_health_characteristic->getValue().c_str();
         Serial.print("The overall health condition of this setup is ");
         Serial.print(health);
         Serial.println(".");
-        if (health == "good") {
+        if (health == SUBJECT_HEALTH_GOOD) {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-        } else if (health == "sick") {
+        } else if (health == SUBJECT_HEALTH_BAD) {
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
@@ -405,6 +603,8 @@ void setup() {
 
     Serial.begin(115200);
     init_ble();
+    //TODO see if we need to put this to 'status_loop()' in case connection is lost..
+    init_wifi();
     init_sensors();
 
     ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,
@@ -454,6 +654,9 @@ void loop() {
 #if defined EXTRA_SERVICE_UUID
     get_extra_info();
 #endif
+
+    // report the overal health status of this setup
+    mqtt_publish(SUBJECT_LED_HEALTH_UUID, health);
 
     // now, just wait for the next loop
     delay(main_loop_delay);

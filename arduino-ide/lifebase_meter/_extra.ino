@@ -58,7 +58,8 @@ static void get_extra_info() {
             water_flow_force_stop--;
         }
         Serial.println("There was no water detected outside the system!");
-        set_ble_characteristic(extra_leak_characteristic, "1");
+        set_ble_characteristic(extra_leak_characteristic, "0");
+        mqtt_publish(EXTRA_LEAK_UUID, "0");
     } else {
         if (!is_leaked) {
             is_leaked = true;
@@ -66,6 +67,7 @@ static void get_extra_info() {
         }
         Serial.println("Warning: There was water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "1");
+        mqtt_publish(EXTRA_LEAK_UUID, "1");
     }
 }
 

@@ -70,26 +70,26 @@ static void get_dht_info() {
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
         Serial.println("Error reading temperature!");
-    }
-    else {
+    } else {
         air_temperature = event.temperature;
         Serial.print("Current temperature is ");
         Serial.print(air_temperature);
         Serial.println("°C.");
         dtostrf(air_temperature, 3, 1, air_chars);
         set_ble_characteristic(air_temperature_characteristic, air_chars);
+        mqtt_publish(AIR_TEMPERATURE_UUID, air_chars);
     }
     dht.humidity().getSensor(&sensor);
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
         Serial.println("Error reading humidity!");
-    }
-    else {
+    } else {
         Serial.print("Current humidity is ");
         Serial.print(event.relative_humidity);
         Serial.println("%");
         dtostrf(event.relative_humidity, 3, 1, air_chars);
         set_ble_characteristic(air_humidity_characteristic, air_chars);
+        mqtt_publish(AIR_HUMIDITY_UUID, air_chars);
     }
 }
 

@@ -32,7 +32,9 @@ we recommend using this solution:
   * Add the board
     * Go to: "Tools", "Board"
     * Choose:
-      * "DOIT ESP32 DEVKIT V1"
+      * Board: "ESP32 Dev Module"
+        * Partition Scheme: "Minimal SPIFFS" (otherwise the sketch is too big)
+      * (do not use "DOIT ESP32 DEVKIT V1" as there are no options available here)
   * Add the libraries
     * Go to: "Sketch", "Include Library", "Manage Libraries"
     * Choose:
