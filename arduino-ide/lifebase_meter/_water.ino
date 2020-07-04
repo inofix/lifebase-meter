@@ -55,13 +55,13 @@ static void init_water() {
 static void init_ble_water(BLEServer* ble_server) {
 
     BLEService *water_service = ble_server->createService(BLEUUID(WATER_SERVICE_UUID), 38, 0);
+    water_container_distance_characteristic = water_service->createCharacteristic(
+            WATER_CONTAINER_DISTANCE_UUID, BLECharacteristic::PROPERTY_READ |
+            BLECharacteristic::PROPERTY_NOTIFY
+    );
     water_container_level_characteristic = water_service->createCharacteristic(
             WATER_CONTAINER_LEVEL_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
-    );
-    water_container_distance_characteristic = water_service->createCharacteristic(
-            WATER_CONTAINER_DISTANCE_UUID, BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE
     );
     water_container_depth_characteristic = water_service->createCharacteristic(
             WATER_CONTAINER_DEPTH_UUID, BLECharacteristic::PROPERTY_READ |
@@ -95,8 +95,8 @@ static void init_ble_water(BLEServer* ble_server) {
             WATER_CONTAINER_PUMP_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY
     );
-    water_container_level_characteristic->addDescriptor(new BLE2902());
     water_container_distance_characteristic->addDescriptor(new BLE2902());
+    water_container_level_characteristic->addDescriptor(new BLE2902());
     water_container_depth_characteristic->addDescriptor(new BLE2902());
     water_container_level_min_crit_characteristic->addDescriptor(new BLE2902());
     water_container_level_min_warn_characteristic->addDescriptor(new BLE2902());
@@ -232,12 +232,12 @@ static void get_water_info() {
     float sound_velocity_air = 331.3 + 0.606 * air_temperature;
     // in m
     float water_distance_value = water_distance_duration * sound_velocity_air / 1000000;
-    float water_depth = water_distance_value -
-        strtof(water_container_distance_characteristic->getValue().c_str(), NULL) +
-        strtof(water_container_depth_characteristic->getValue().c_str(), NULL);
 
-    float crit_threshhold = strtof(
-        water_container_level_min_crit_characteristic->getValue().c_str(), NULL);
+    if (water_distance_value > 0) {
+        float water_depth = strtof(water_container_depth_characteristic->getValue().c_str(), NULL) - water_distance_value;
+
+        float crit_threshhold = strtof(
+            water_container_level_min_crit_characteristic->getValue().c_str(), NULL);
 //disabled for now..
 //    if (water_depth < crit_threshhold) {
 //        if (!is_crit_low) {
@@ -251,13 +251,22 @@ static void get_water_info() {
 //        }
 //    }
 
-    Serial.print("Current water level is ");
-    Serial.print(water_depth);
-    Serial.println("m.");
-    char water_depth_chars[4];
-    dtostrf(water_depth, 1, 3, water_depth_chars);
-    set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
-    mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
+        Serial.print("Current water level is ");
+        Serial.print(water_depth);
+        Serial.print("m; Sensor-distance to surface is ");
+        Serial.print(water_distance_value);
+        Serial.println("m.");
+        char water_dist_chars[4];
+        dtostrf(water_distance_value, 1, 3, water_dist_chars);
+        set_ble_characteristic(water_container_distance_characteristic, water_dist_chars);
+        mqtt_publish(WATER_CONTAINER_DISTANCE_UUID, water_dist_chars);
+        char water_depth_chars[4];
+        dtostrf(water_depth, 1, 3, water_depth_chars);
+        set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
+        mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
+    } else {
+        Serial.println("Error reading the water level distance.");
+    }
 
     // ask the float switches
     if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
