@@ -70,8 +70,7 @@ static void get_dht_info() {
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
         Serial.println("Error reading temperature!");
-    }
-    else {
+    } else {
         air_temperature = event.temperature;
         Serial.print("Current temperature is ");
         Serial.print(air_temperature);
@@ -84,8 +83,7 @@ static void get_dht_info() {
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
         Serial.println("Error reading humidity!");
-    }
-    else {
+    } else {
         Serial.print("Current humidity is ");
         Serial.print(event.relative_humidity);
         Serial.println("%");
