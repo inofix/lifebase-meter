@@ -365,7 +365,7 @@ static bool init_mqtt() {
         return false;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
+    if (WiFi.status() != WL_CONNECTED) {
 
         if (!init_wifi()) {
             return false;
