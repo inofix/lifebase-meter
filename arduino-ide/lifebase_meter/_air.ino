@@ -77,7 +77,7 @@ static void get_dht_info() {
         Serial.println("°C.");
         dtostrf(air_temperature, 3, 1, air_chars);
         set_ble_characteristic(air_temperature_characteristic, air_chars);
-        mqtt_publish(AIR_TEMPERATURE_UUID, air_chars);
+        mqtt_publish(AIR_SERVICE_UUID, AIR_TEMPERATURE_UUID, air_chars);
     }
     dht.humidity().getSensor(&sensor);
     dht.humidity().getEvent(&event);
@@ -89,7 +89,7 @@ static void get_dht_info() {
         Serial.println("%");
         dtostrf(event.relative_humidity, 3, 1, air_chars);
         set_ble_characteristic(air_humidity_characteristic, air_chars);
-        mqtt_publish(AIR_HUMIDITY_UUID, air_chars);
+        mqtt_publish(AIR_SERVICE_UUID, AIR_HUMIDITY_UUID, air_chars);
     }
 }
 

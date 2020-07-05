@@ -421,7 +421,7 @@ static bool init_mqtt() {
     }
 }
 
-static void mqtt_publish(String uuid, const char* value) {
+static void mqtt_publish(String service_uuid, String uuid, const char* value) {
     if (!mqtt_client.connected()) {
         if (!init_mqtt()) {
 
@@ -431,9 +431,11 @@ static void mqtt_publish(String uuid, const char* value) {
 
     String t = mqtt_namespace;
     t += "/";
-    t += SUBJECT_TYPE_UUID_UUID;
+    t += SUBJECT_TYPE_UUID;
     t += "/";
-    t += SUBJECT_UUID_UUID;
+    t += SUBJECT_UUID;
+    t += "/";
+    t += service_uuid;
     t += "/";
     t += uuid;
     mqtt_client.publish(t.c_str(), value);
@@ -656,7 +658,7 @@ void loop() {
 #endif
 
     // report the overal health status of this setup
-    mqtt_publish(SUBJECT_LED_HEALTH_UUID, health);
+    mqtt_publish(SUBJECT_SERVICE_UUID, SUBJECT_LED_HEALTH_UUID, health);
 
     // now, just wait for the next loop
     delay(main_loop_delay);
