@@ -35,6 +35,8 @@ EXTRA_SERVICE=""
 ##### This might change for test setups #####
 MAIN_LOOP_DELAY=60000
 PUMP_LOOP_DELAY=2000
+# PUMP_MODE continouus '0', pump on as per default;
+# PUMP_MODE interval '1', pump only on request;
 PUMP_MODE=0
 
 ##### This is LifeBase specific #####
