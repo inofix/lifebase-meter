@@ -59,7 +59,7 @@ static void init_ble_air(BLEServer* ble_server) {
 //TODO:     - send it via descriptor?
 static void get_dht_info() {
 
-    char air_chars[4];
+    char air_chars[5];
     sensor_t sensor;
     dht.temperature().getSensor(&sensor);
     Serial.print("Humidity/temperature sensor is ");

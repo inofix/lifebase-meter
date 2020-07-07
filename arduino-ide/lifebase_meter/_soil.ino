@@ -49,7 +49,7 @@ static void init_ble_soil(BLEServer* ble_server) {
             SOIL_MOISTURE_MAX_CRIT_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
-    char chars[3];
+    char chars[4];
     dtostrf(SOIL_MOISTURE_MIN_CRIT_INIT, 3, 0, chars);
     soil_moisture_min_crit_characteristic->setValue(chars);
     dtostrf(SOIL_MOISTURE_MIN_WARN_INIT, 3, 0, chars);
@@ -165,7 +165,7 @@ static void get_soil_info() {
         SOIL_MOISTURE_ABSOLUTE_MIN, SOIL_MOISTURE_ABSOLUTE_MAX,
         soil_moisture_min_crit, soil_moisture_min_warn,
         soil_moisture_max_warn, soil_moisture_max_crit);
-    char soil_moisture_chars[3];
+    char soil_moisture_chars[4];
     dtostrf(soil_moisture, 3, 0, soil_moisture_chars);
     set_ble_characteristic(soil_moisture_characteristic, soil_moisture_chars);
     mqtt_publish(SOIL_SERVICE_UUID, SOIL_MOISTURE_UUID, soil_moisture_chars);

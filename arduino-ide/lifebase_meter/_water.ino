@@ -134,7 +134,7 @@ static void init_ble_water(BLEServer* ble_server) {
     desc6->setFormat(0x01);
     desc6->setUnit(0x2701); // meter
     water_container_depth_characteristic->addDescriptor(desc6);
-    char chars[3];
+    char chars[4];
     dtostrf(0, 3, 0, chars);
     water_container_level_characteristic->setValue(chars);
     dtostrf(0, 3, 0, chars);
@@ -256,14 +256,14 @@ static void get_water_info() {
         Serial.print("m; Sensor-distance to surface is ");
         Serial.print(water_distance_value);
         Serial.println("m.");
-        char water_dist_chars[4];
-        dtostrf(water_distance_value, 1, 3, water_dist_chars);
-        set_ble_characteristic(water_container_distance_characteristic, water_dist_chars);
+        char water_dist_chars[7];
+        dtostrf(water_distance_value, 6, 2, water_dist_chars);
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_DISTANCE_UUID, water_dist_chars);
-        char water_depth_chars[4];
-        dtostrf(water_depth, 1, 3, water_depth_chars);
-        set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
+        set_ble_characteristic(water_container_distance_characteristic, water_dist_chars);
+        char water_depth_chars[7];
+        dtostrf(water_depth, 6, 2, water_depth_chars);
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
+        set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
     } else {
         Serial.println("Error reading the water level distance.");
     }

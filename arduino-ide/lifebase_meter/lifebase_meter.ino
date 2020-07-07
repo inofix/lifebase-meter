@@ -51,10 +51,10 @@ int main_loop_delay;
 #define SUBJECT_LED_WARN_UUID "{{ SUBJECT_LED_WARN_UUID }}"
 #define SUBJECT_LED_IDENTIFY_UUID "{{ SUBJECT_LED_IDENTIFY_UUID }}"
 /// these are the constants for the conditions and used e.g. for the status led
-#define SUBJECT_HEALTH_GOOD "good"
-#define SUBJECT_HEALTH_BAD "bad"
-#define SUBJECT_HEALTH_CRITICAL "critical"
-#define SUBJECT_HEALTH_DEAD "dead"
+#define SUBJECT_HEALTH_GOOD "0"
+#define SUBJECT_HEALTH_BAD "1"
+#define SUBJECT_HEALTH_CRITICAL "2"
+#define SUBJECT_HEALTH_DEAD "3"
 
 /// system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -214,6 +214,8 @@ TaskHandle_t WateringTask;
 //TODO Use WiFiClientSecure instead for SSL/TLS connections
 WiFiClient wifi_client;
 
+bool wifi_is_connected = false;
+
 // MQTT variables
 char* mqtt_broker = WIFI_MQTT_DEFAULT_BROKER;
 int mqtt_port = WIFI_MQTT_DEFAULT_PORT;
@@ -276,7 +278,7 @@ int water_flow_force_stop = 0;
 int water_flow_start = 0;
 
 // Status of the environement
-const char* health = "good";
+const char* health = SUBJECT_HEALTH_GOOD;
 
 static void init_sensors() {
 
@@ -560,6 +562,8 @@ void status_led() {
             delay(1);
         }
     }
+
+
     // under 'unstable conditions' show a blinking warning
     if (water_flow_force_stop > 0) {
         // tell the user to stop watering (or that some problem exists..)
@@ -582,21 +586,23 @@ void status_led() {
         //TODO at the moment the health is only set by the user..
         health = subject_health_characteristic->getValue().c_str();
         Serial.print("The overall health condition of this setup is ");
-        Serial.print(health);
-        Serial.println(".");
-        if (health == SUBJECT_HEALTH_GOOD) {
+        if (strcmp(health, SUBJECT_HEALTH_GOOD) == 0) {
+            Serial.print("good");
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-        } else if (health == SUBJECT_HEALTH_BAD) {
+        } else if (strcmp(health, SUBJECT_HEALTH_BAD) == 0) {
+            Serial.print("warning");
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
         } else {
+            Serial.print("critical");
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
         }
+        Serial.println(".");
         delay(SUBJECT_STATUS_LOOP);
     }
 }
