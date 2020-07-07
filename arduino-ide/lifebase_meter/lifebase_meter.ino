@@ -562,7 +562,19 @@ void status_led() {
             delay(1);
         }
     }
-
+    // if wifi is not connected, show a quick warning
+    if (WiFi.status() != WL_CONNECTED) {
+        for (int i = 0; i < 4 ; i++) {
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 255);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 124);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 222);
+            delay(100);
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 255);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 124);
+            delay(100);
+        }
+    }
 
     // under 'unstable conditions' show a blinking warning
     if (water_flow_force_stop > 0) {
