@@ -54,7 +54,7 @@ int main_loop_delay;
 #define SUBJECT_HEALTH_GOOD "0"
 #define SUBJECT_HEALTH_BAD "1"
 #define SUBJECT_HEALTH_CRITICAL "2"
-#define SUBJECT_HEALTH_DEAD "3"
+#define SUBJECT_HEALTH_FATAL "3"
 
 /// system constants per system/setup
 /// #change# These UUIDs should differ from setup to setup
@@ -601,16 +601,26 @@ void status_led() {
         if (strcmp(health, SUBJECT_HEALTH_GOOD) == 0) {
             Serial.print("good");
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
-            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 16);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
         } else if (strcmp(health, SUBJECT_HEALTH_BAD) == 0) {
             Serial.print("warning");
             ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 8);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
-        } else {
+        } else if (strcmp(health, SUBJECT_HEALTH_CRITICAL) == 0) {
             Serial.print("critical");
-            ledcWrite(SUBJECT_LED_CHANNEL_RED, 8);
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 12);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 4);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else if (strcmp(health, SUBJECT_HEALTH_FATAL) == 0) {
+            Serial.print("fatal");
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 16);
+            ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
+            ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
+        } else {
+            Serial.print("unknown");
+            ledcWrite(SUBJECT_LED_CHANNEL_RED, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_GREEN, 0);
             ledcWrite(SUBJECT_LED_CHANNEL_BLUE, 0);
         }
