@@ -27,8 +27,8 @@ void IRAM_ATTR leak_isr() {
     if (! is_leaked) {
         Serial.println("INTERRUPT: leak detected!");
 //TODO add a capacitor..
-//        is_leaked = true;
-//        water_flow_force_stop++;
+        is_leaked = true;
+        water_flow_force_stop++;
     }
 }
 
