@@ -30,26 +30,26 @@ static bool is_lower_than = false;
 void IRAM_ATTR switch_isr() {
     if (! is_lower_than) {
         Serial.println("INTERRUPT: critical water level!");
-//TODO add a condensator..
-//        is_lower_than = true;
-//        water_flow_force_stop++;
+//TODO add a capacitor..
+        is_lower_than = true;
+        water_flow_force_stop++;
     }
 }
 
 static void init_water() {
 
     // initialize the HC-SR04
-    pinMode(WATERCONTAINERLEVELTRIGGERPIN, OUTPUT);
-    pinMode(WATERCONTAINERLEVELECHOPIN, INPUT);
+    pinMode(WATER_CONTAINER_LEVEL_TRIGGER_PIN, OUTPUT);
+    pinMode(WATER_CONTAINER_LEVEL_ECHO_PIN, INPUT);
 
     // initialize the two swim switches
-    pinMode(WATERCONTAINERLEVELMINPIN, INPUT_PULLUP);
-    attachInterrupt(WATERCONTAINERLEVELMINPIN, switch_isr, HIGH);
+    pinMode(WATER_CONTAINER_LEVEL_MIN_PIN, INPUT_PULLUP);
+    attachInterrupt(WATER_CONTAINER_LEVEL_MIN_PIN, switch_isr, HIGH);
 // disabled for now..
-//    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
+//    pinMode(WATER_CONTAINER_LEVEL_MAX_PIN, INPUT_PULLUP);
 
     // initialize the pump
-    pinMode(WATERPUMPPIN, OUTPUT);
+    pinMode(WATER_PUMP_PIN, OUTPUT);
 }
 
 static void init_ble_water(BLEServer* ble_server) {
@@ -134,7 +134,7 @@ static void init_ble_water(BLEServer* ble_server) {
     desc6->setFormat(0x01);
     desc6->setUnit(0x2701); // meter
     water_container_depth_characteristic->addDescriptor(desc6);
-    char chars[3];
+    char chars[4];
     dtostrf(0, 3, 0, chars);
     water_container_level_characteristic->setValue(chars);
     dtostrf(0, 3, 0, chars);
@@ -164,7 +164,7 @@ void watering_loop(void* parameters) {
 //        Serial.print("Watering action task is running on core ");
 //        Serial.print(xPortGetCoreID());
 //        Serial.println(".");
-        pump_water(WATERPUMPPIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
+        pump_water(WATER_PUMP_PIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
     }
 }
 
@@ -179,12 +179,12 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
         if (water_flow_force_stop == 0) {
             digitalWrite(pin, LOW);
             set_ble_characteristic(characteristic, "1");
-            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "1");
+            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "1");
             Serial.println("Pumping...");
         } else {
             digitalWrite(pin, HIGH);
             set_ble_characteristic(characteristic, "0");
-            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
+            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
             Serial.println("Force stopping the pump...");
         }
         delay(loop_delay);
@@ -194,13 +194,13 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, LOW);
                 set_ble_characteristic(characteristic, "1");
-                mqtt_publish(WATER_CONTAINER_PUMP_UUID, "1");
+                mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "1");
                 Serial.println("Starting the pump...");
             }
             delay(loop_delay / 2);
             digitalWrite(pin, HIGH);
             set_ble_characteristic(characteristic, "0");
-            mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
+            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
             Serial.println("Stopping the pump...");
             delay(loop_delay / 2);
         }
@@ -208,7 +208,7 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
     // pump is always off in this mode..
         digitalWrite(pin, HIGH);
         set_ble_characteristic(characteristic, "0");
-        mqtt_publish(WATER_CONTAINER_PUMP_UUID, "0");
+        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
 //        Serial.println("Turning off the pump...");
         delay(loop_delay);
     }
@@ -221,13 +221,13 @@ static void get_water_info() {
     // temperature is the most significant variable: https://en.wikipedia.org/wiki/Speed_of_sound
     // assumes 20°C if air_service is missing..
     main_loop_delay -= 100;
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, LOW);
     delayMicroseconds(99);
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, HIGH);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, HIGH);
     delayMicroseconds(1);
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, LOW);
     // (half the way), in seconds
-    float water_distance_duration = pulseIn(WATERCONTAINERLEVELECHOPIN, HIGH) / 2;
+    float water_distance_duration = pulseIn(WATER_CONTAINER_LEVEL_ECHO_PIN, HIGH) / 2;
     // (we should have two sensors, one just for calibration...)
     float sound_velocity_air = 331.3 + 0.606 * air_temperature;
     // in m
@@ -256,26 +256,26 @@ static void get_water_info() {
         Serial.print("m; Sensor-distance to surface is ");
         Serial.print(water_distance_value);
         Serial.println("m.");
-        char water_dist_chars[4];
-        dtostrf(water_distance_value, 1, 3, water_dist_chars);
+        char water_dist_chars[7];
+        dtostrf(water_distance_value, 6, 2, water_dist_chars);
+        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_DISTANCE_UUID, water_dist_chars);
         set_ble_characteristic(water_container_distance_characteristic, water_dist_chars);
-        mqtt_publish(WATER_CONTAINER_DISTANCE_UUID, water_dist_chars);
-        char water_depth_chars[4];
-        dtostrf(water_depth, 1, 3, water_depth_chars);
+        char water_depth_chars[7];
+        dtostrf(water_depth, 6, 2, water_depth_chars);
+        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
         set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
-        mqtt_publish(WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
     } else {
         Serial.println("Error reading the water level distance.");
     }
 
     // ask the float switches
-    if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
+    if (digitalRead(WATER_CONTAINER_LEVEL_MIN_PIN)) {
         if (is_lower_than) {
             is_lower_than = false;
             water_flow_force_stop--;
         }
         set_ble_characteristic(water_container_min_level_characteristic, "1");
-        mqtt_publish(WATER_CONTAINER_MIN_LEVEL_UUID, "1");
+        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_MIN_LEVEL_UUID, "1");
         Serial.println("The container is full enough for the watering pump.");
     } else {
         if (!is_lower_than) {
@@ -283,11 +283,11 @@ static void get_water_info() {
             water_flow_force_stop++;
         }
         set_ble_characteristic(water_container_min_level_characteristic, "0");
-        mqtt_publish(WATER_CONTAINER_MIN_LEVEL_UUID, "0");
+        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_MIN_LEVEL_UUID, "0");
         Serial.println("WARNING: please do fill the container!");
     }
 // currently disabled
-//    if (digitalRead(WATERCONTAINERLEVELMAXPIN)) {
+//    if (digitalRead(WATER_CONTAINER_LEVEL_MAX_PIN)) {
 //        set_ble_characteristic(water_container_max_level_characteristic, "1");
 //        Serial.println("WARNING: the maximum level of the container is reached!");
 //    } else {

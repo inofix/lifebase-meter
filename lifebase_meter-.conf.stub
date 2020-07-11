@@ -30,11 +30,26 @@ WATER_SERVICE=""
 SOIL_SERVICE=""
 EXTRA_SERVICE=""
 
+###### PIN Configuration ######
+SUBJECT_LED_RED_PIN=14
+SUBJECT_LED_GREEN_PIN=27
+SUBJECT_LED_BLUE_PIN=12
+AIR_DHT_PIN=13
+WATER_CONTAINER_LEVEL_TRIGGER_PIN=26
+WATER_CONTAINER_LEVEL_ECHO_PIN=25
+WATER_CONTAINER_LEVEL_MIN_PIN=4
+WATER_CONTAINER_LEVEL_MAX_PIN=15
+WATER_PUMP_PIN=2
+SOIL_MOISTURE_PIN=32
+EXTRA_LEAK_PIN=33
+
 #### Those values should probably not be changed.. ####
 
 ##### This might change for test setups #####
 MAIN_LOOP_DELAY=60000
 PUMP_LOOP_DELAY=2000
+# PUMP_MODE continouus '0', pump on as per default;
+# PUMP_MODE interval '1', pump only on request;
 PUMP_MODE=0
 
 ##### This is LifeBase specific #####
@@ -88,4 +103,4 @@ EXTRA_SERVICE_UUID="54050000-e337-46ca-9690-cdd6d309e7b1"
 EXTRA_LEAK_UUID="54050010-e337-46ca-9690-cdd6d309e7b1"
 
 ## only used internally for compatibility checks
-config_version="0.3"
+config_version="0.4"

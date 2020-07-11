@@ -26,9 +26,9 @@ bool is_leaked = false;
 void IRAM_ATTR leak_isr() {
     if (! is_leaked) {
         Serial.println("INTERRUPT: leak detected!");
-//TODO add a condensator..
-//        is_leaked = true;
-//        water_flow_force_stop++;
+//TODO add a capacitor..
+        is_leaked = true;
+        water_flow_force_stop++;
     }
 }
 
@@ -59,7 +59,7 @@ static void get_extra_info() {
         }
         Serial.println("There was no water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "0");
-        mqtt_publish(EXTRA_LEAK_UUID, "0");
+        mqtt_publish(EXTRA_SERVICE_UUID, EXTRA_LEAK_UUID, "0");
     } else {
         if (!is_leaked) {
             is_leaked = true;
@@ -67,7 +67,7 @@ static void get_extra_info() {
         }
         Serial.println("Warning: There was water detected outside the system!");
         set_ble_characteristic(extra_leak_characteristic, "1");
-        mqtt_publish(EXTRA_LEAK_UUID, "1");
+        mqtt_publish(EXTRA_SERVICE_UUID, EXTRA_LEAK_UUID, "1");
     }
 }
 

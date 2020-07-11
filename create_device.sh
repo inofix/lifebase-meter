@@ -3,8 +3,8 @@ if [ $1 == debug ] ; then
     set -x
     shift
 fi
-version="0.3"
-#** Version: 0.3
+version="0.4"
+#** Version: 0.4
 #*  This script prepares a custom configuration for a
 #* certain LifeBase setup with an ESP32 in the `configs`
 #* folder and prepares then the loadable code under

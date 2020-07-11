@@ -63,10 +63,10 @@ static void get_light_info() {
         light_value = event.light;
     }
 
-    char light_chars[3];
-    dtostrf(light_value, 3, 0, light_chars);
+    char light_chars[6];
+    dtostrf(light_value, 5, 0, light_chars);
     set_ble_characteristic(light_exposure_characteristic, light_chars);
-    mqtt_publish(LIGHT_EXPOSURE_UUID, light_chars);
+    mqtt_publish(LIGHT_SERVICE_UUID, LIGHT_EXPOSURE_UUID, light_chars);
     Serial.print("The current light exposure is ");
     Serial.print(light_value);
     Serial.println(" Lux");
