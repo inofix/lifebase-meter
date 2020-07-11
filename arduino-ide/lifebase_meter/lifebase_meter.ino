@@ -63,9 +63,9 @@ int main_loop_delay;
 #define SUBJECT_TYPE_NAME "{{ SUBJECT_TYPE_NAME }}"
 #define SUBJECT_TYPE_UUID "{{ SUBJECT_TYPE_UUID }}"
 /// pin config
-#define SUBJECT_LED_RED_PIN 14
-#define SUBJECT_LED_GREEN_PIN 27
-#define SUBJECT_LED_BLUE_PIN 12
+#define SUBJECT_LED_RED_PIN {{ SUBJECT_LED_RED_PIN }}
+#define SUBJECT_LED_GREEN_PIN {{ SUBJECT_LED_GREEN_PIN }}
+#define SUBJECT_LED_BLUE_PIN {{ SUBJECT_LED_BLUE_PIN }}
 #define SUBJECT_LED_CHANNEL_RED 0
 #define SUBJECT_LED_CHANNEL_GREEN 2
 #define SUBJECT_LED_CHANNEL_BLUE 4
@@ -99,9 +99,9 @@ TaskHandle_t StatusTask;
 /// air sensor includes
 #include <DHT_U.h>
 /// air sensor constants
-#define DHTPIN 13
-#define DHTTYPE DHT22
-DHT_Unified dht(DHTPIN, DHTTYPE);
+#define AIR_DHT_PIN {{ AIR_DHT_PIN }}
+#define AIR_DHT_TYPE DHT22
+DHT_Unified dht(AIR_DHT_PIN, AIR_DHT_TYPE);
 #endif
 
 // water service configuration
@@ -126,13 +126,13 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 
 /// pin config
 //// water container level: HC-SR04
-#define WATERCONTAINERLEVELTRIGGERPIN 26
-#define WATERCONTAINERLEVELECHOPIN 25
+#define WATER_CONTAINER_LEVEL_TRIGGER_PIN {{ WATER_CONTAINER_LEVEL_TRIGGER_PIN }}
+#define WATER_CONTAINER_LEVEL_ECHO_PIN {{ WATER_CONTAINER_LEVEL_ECHO_PIN }}
 //// water container swimming on/off sensors
-#define WATERCONTAINERLEVELMINPIN 4
-#define WATERCONTAINERLEVELMAXPIN 15
+#define WATER_CONTAINER_LEVEL_MIN_PIN {{ WATER_CONTAINER_LEVEL_MIN_PIN }}
+#define WATER_CONTAINER_LEVEL_MAX_PIN {{ WATER_CONTAINER_LEVEL_MAX_PIN }}
 //// water pump pin
-#define WATERPUMPPIN 2
+#define WATER_PUMP_PIN {{ WATER_PUMP_PIN=}}
 // switch between continuous and interval mode
 #define PUMP_MODE {{ PUMP_MODE }}
 // how long should the pump run and pause each time? (1/2 loop length each)
@@ -144,7 +144,7 @@ TaskHandle_t WateringTask;
 //#define SOIL_SERVICE_UUID "{{ SOIL_SERVICE_UUID }}"
 #if defined SOIL_SERVICE_UUID
 #define SOIL_MOISTURE_UUID "{{ SOIL_MOISTURE_UUID }}"
-#define SOILMOISTUREPIN 32
+#define SOIL_MOISTURE_PIN {{ SOIL_MOISTURE_PIN }}
 #define SOIL_MOISTURE_MIN_CRIT_UUID "{{ SOIL_MOISTURE_MIN_CRIT_UUID }}"
 #define SOIL_MOISTURE_MIN_WARN_UUID "{{ SOIL_MOISTURE_MIN_WARN_UUID }}"
 #define SOIL_MOISTURE_MAX_WARN_UUID "{{ SOIL_MOISTURE_MAX_WARN_UUID }}"
@@ -180,7 +180,7 @@ TaskHandle_t WateringTask;
 //#define EXTRA_SERVICE_UUID "{{ EXTRA_SERVICE_UUID }}"
 #if defined EXTRA_SERVICE_UUID
 #define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
-#define EXTRA_LEAK_PIN 33
+#define EXTRA_LEAK_PIN {{ EXTRA_LEAK_PIN }}
 #endif
 
 // WiFi includes

@@ -39,17 +39,17 @@ void IRAM_ATTR switch_isr() {
 static void init_water() {
 
     // initialize the HC-SR04
-    pinMode(WATERCONTAINERLEVELTRIGGERPIN, OUTPUT);
-    pinMode(WATERCONTAINERLEVELECHOPIN, INPUT);
+    pinMode(WATER_CONTAINER_LEVEL_TRIGGER_PIN, OUTPUT);
+    pinMode(WATER_CONTAINER_LEVEL_ECHO_PIN, INPUT);
 
     // initialize the two swim switches
-    pinMode(WATERCONTAINERLEVELMINPIN, INPUT_PULLUP);
-    attachInterrupt(WATERCONTAINERLEVELMINPIN, switch_isr, HIGH);
+    pinMode(WATER_CONTAINER_LEVEL_MIN_PIN, INPUT_PULLUP);
+    attachInterrupt(WATER_CONTAINER_LEVEL_MIN_PIN, switch_isr, HIGH);
 // disabled for now..
-//    pinMode(WATERCONTAINERLEVELMAXPIN, INPUT_PULLUP);
+//    pinMode(WATER_CONTAINER_LEVEL_MAX_PIN, INPUT_PULLUP);
 
     // initialize the pump
-    pinMode(WATERPUMPPIN, OUTPUT);
+    pinMode(WATER_PUMP_PIN, OUTPUT);
 }
 
 static void init_ble_water(BLEServer* ble_server) {
@@ -164,7 +164,7 @@ void watering_loop(void* parameters) {
 //        Serial.print("Watering action task is running on core ");
 //        Serial.print(xPortGetCoreID());
 //        Serial.println(".");
-        pump_water(WATERPUMPPIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
+        pump_water(WATER_PUMP_PIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
     }
 }
 
@@ -221,13 +221,13 @@ static void get_water_info() {
     // temperature is the most significant variable: https://en.wikipedia.org/wiki/Speed_of_sound
     // assumes 20°C if air_service is missing..
     main_loop_delay -= 100;
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, LOW);
     delayMicroseconds(99);
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, HIGH);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, HIGH);
     delayMicroseconds(1);
-    digitalWrite(WATERCONTAINERLEVELTRIGGERPIN, LOW);
+    digitalWrite(WATER_CONTAINER_LEVEL_TRIGGER_PIN, LOW);
     // (half the way), in seconds
-    float water_distance_duration = pulseIn(WATERCONTAINERLEVELECHOPIN, HIGH) / 2;
+    float water_distance_duration = pulseIn(WATER_CONTAINER_LEVEL_ECHO_PIN, HIGH) / 2;
     // (we should have two sensors, one just for calibration...)
     float sound_velocity_air = 331.3 + 0.606 * air_temperature;
     // in m
@@ -269,7 +269,7 @@ static void get_water_info() {
     }
 
     // ask the float switches
-    if (digitalRead(WATERCONTAINERLEVELMINPIN)) {
+    if (digitalRead(WATER_CONTAINER_LEVEL_MIN_PIN)) {
         if (is_lower_than) {
             is_lower_than = false;
             water_flow_force_stop--;
@@ -287,7 +287,7 @@ static void get_water_info() {
         Serial.println("WARNING: please do fill the container!");
     }
 // currently disabled
-//    if (digitalRead(WATERCONTAINERLEVELMAXPIN)) {
+//    if (digitalRead(WATER_CONTAINER_LEVEL_MAX_PIN)) {
 //        set_ble_characteristic(water_container_max_level_characteristic, "1");
 //        Serial.println("WARNING: the maximum level of the container is reached!");
 //    } else {

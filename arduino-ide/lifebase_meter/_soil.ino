@@ -23,7 +23,7 @@
 
 static void init_soil() {
 
-    pinMode(SOILMOISTUREPIN, INPUT);
+    pinMode(SOIL_MOISTURE_PIN, INPUT);
 }
 
 static void init_ble_soil(BLEServer* ble_server) {
@@ -161,7 +161,7 @@ static void get_soil_info() {
     int soil_moisture_max_crit = strtol(
             soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
 
-    int soil_moisture = read_soil_moisture_percentage(SOILMOISTUREPIN,
+    int soil_moisture = read_soil_moisture_percentage(SOIL_MOISTURE_PIN,
         SOIL_MOISTURE_ABSOLUTE_MIN, SOIL_MOISTURE_ABSOLUTE_MAX,
         soil_moisture_min_crit, soil_moisture_min_warn,
         soil_moisture_max_warn, soil_moisture_max_crit);
