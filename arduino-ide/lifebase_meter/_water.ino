@@ -30,7 +30,7 @@ static bool is_lower_than = false;
 void IRAM_ATTR switch_isr() {
     if (! is_lower_than) {
         Serial.println("INTERRUPT: critical water level!");
-//TODO add a condensator..
+//TODO add a capacitor..
 //        is_lower_than = true;
 //        water_flow_force_stop++;
     }
