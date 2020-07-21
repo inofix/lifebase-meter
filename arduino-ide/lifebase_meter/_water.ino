@@ -28,11 +28,13 @@ static bool is_crit_low = false;
 static bool is_lower_than = false;
 
 void IRAM_ATTR switch_isr() {
-    if (! is_lower_than) {
-        Serial.println("INTERRUPT: critical water level!");
-//TODO add a capacitor..
-        is_lower_than = true;
-        water_flow_force_stop++;
+    // increase the threashold: make sure it was no false alarm
+    if (!digitalRead(WATER_CONTAINER_LEVEL_MIN_PIN)) {
+        if (! is_lower_than) {
+            Serial.println("INTERRUPT: critical water level!");
+            is_lower_than = true;
+            water_flow_force_stop++;
+        }
     }
 }
 
@@ -44,7 +46,7 @@ static void init_water() {
 
     // initialize the two swim switches
     pinMode(WATER_CONTAINER_LEVEL_MIN_PIN, INPUT_PULLUP);
-    attachInterrupt(WATER_CONTAINER_LEVEL_MIN_PIN, switch_isr, HIGH);
+    attachInterrupt(WATER_CONTAINER_LEVEL_MIN_PIN, switch_isr, FALLING);
 // disabled for now..
 //    pinMode(WATER_CONTAINER_LEVEL_MAX_PIN, INPUT_PULLUP);
 

@@ -24,18 +24,20 @@
 bool is_leaked = false;
 
 void IRAM_ATTR leak_isr() {
-    if (! is_leaked) {
-        Serial.println("INTERRUPT: leak detected!");
-//TODO add a capacitor..
-        is_leaked = true;
-        water_flow_force_stop++;
+    // increase the threashold: make sure it was no false alarm
+    if (!digitalRead(EXTRA_LEAK_PIN)) {
+        if (! is_leaked) {
+            Serial.println("INTERRUPT: leak detected!");
+            is_leaked = true;
+            water_flow_force_stop++;
+        }
     }
 }
 
 static void init_extra() {
 
     pinMode(EXTRA_LEAK_PIN, INPUT_PULLUP);
-    attachInterrupt(EXTRA_LEAK_PIN, leak_isr, HIGH);
+    attachInterrupt(EXTRA_LEAK_PIN, leak_isr, FALLING);
 }
 
 static void init_ble_extra(BLEServer* ble_server) {
