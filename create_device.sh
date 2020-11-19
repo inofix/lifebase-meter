@@ -90,7 +90,7 @@ while true ; do
         -e)
             extraservice="on"
         ;;
-        -A)
+        -E)
             extraservice="off"
         ;;
 #*      -l/-L               turn lightservice (on)/off
