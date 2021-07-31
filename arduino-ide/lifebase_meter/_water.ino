@@ -29,6 +29,7 @@ static bool is_lower_than = false;
 
 void IRAM_ATTR switch_isr() {
     // increase the threashold: make sure it was no false alarm
+    delay(2);
     if (!digitalRead(WATER_CONTAINER_LEVEL_MIN_PIN)) {
         if (! is_lower_than) {
             Serial.println("INTERRUPT: critical water level!");
@@ -166,11 +167,14 @@ void watering_loop(void* parameters) {
 //        Serial.print("Watering action task is running on core ");
 //        Serial.print(xPortGetCoreID());
 //        Serial.println(".");
-        pump_water(WATER_PUMP_PIN, water_container_pump_characteristic, PUMP_LOOP_DELAY);
+        pump_water(WATER_PUMP_PIN, PUMP_LOOP_DELAY);
     }
 }
 
-static void pump_water(int pin, BLECharacteristic* characteristic, int loop_delay) {
+// remember the pump state for the test loop to report
+char* pump_state = "0";
+
+static void pump_water(int pin, int loop_delay) {
 
 //TODO allow relay control to be inverted.
 // I have a relay here which acts on NO - LOW,
@@ -180,13 +184,11 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
     // we are in continuous mode, this means ignoring external watering requests
         if (water_flow_force_stop == 0) {
             digitalWrite(pin, LOW);
-            set_ble_characteristic(characteristic, "1");
-            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "1");
+            pump_state = "1";
             Serial.println("Pumping...");
         } else {
             digitalWrite(pin, HIGH);
-            set_ble_characteristic(characteristic, "0");
-            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
+            pump_state = "0";
             Serial.println("Force stopping the pump...");
         }
         delay(loop_delay);
@@ -195,28 +197,29 @@ static void pump_water(int pin, BLECharacteristic* characteristic, int loop_dela
         if (water_flow_start > 0) {
             if (water_flow_force_stop == 0) {
                 digitalWrite(pin, LOW);
-                set_ble_characteristic(characteristic, "1");
-                mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "1");
+                pump_state = "1";
                 Serial.println("Starting the pump...");
             }
             delay(loop_delay / 2);
             digitalWrite(pin, HIGH);
-            set_ble_characteristic(characteristic, "0");
-            mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
+            pump_state = "0";
             Serial.println("Stopping the pump...");
             delay(loop_delay / 2);
         }
     } else {
     // pump is always off in this mode..
         digitalWrite(pin, HIGH);
-        set_ble_characteristic(characteristic, "0");
-        mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, "0");
-//        Serial.println("Turning off the pump...");
+        pump_state = "0";
+        Serial.println("Not using any pump...");
         delay(loop_delay);
     }
 }
 
 static void get_water_info() {
+
+    // first of all, report whether we are pumping
+    set_ble_characteristic(water_container_pump_characteristic, pump_state);
+    mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, pump_state);
 
     // measure the distance to the water surface and add the depth
 
