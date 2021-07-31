@@ -25,6 +25,7 @@ bool is_leaked = false;
 
 void IRAM_ATTR leak_isr() {
     // increase the threashold: make sure it was no false alarm
+    delay(2);
     if (!digitalRead(EXTRA_LEAK_PIN)) {
         if (! is_leaked) {
             Serial.println("INTERRUPT: leak detected!");
