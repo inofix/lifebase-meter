@@ -315,15 +315,14 @@ class LBMServerCallbacks: public BLEServerCallbacks {
 
 static bool check_wifi_status() {
 
-    // Just enough time to travel to the moon, or get a connection to the AP..
-    delay(2000);
-
     if (WiFi.status() == WL_CONNECTED) {
 
         Serial.println("");
-        Serial.println("WiFi is connected!");
-        Serial.print("The IP address is: ");
+        Serial.print("WiFi is connected! (SSID: ");
+        Serial.print(WiFi.SSID());
+        Serial.print("; IP: ");
         Serial.print(WiFi.localIP());
+        Serial.println(")");
         return true;
     } else {
         Serial.println("The WiFi connection is not ready (yet).");
@@ -333,10 +332,11 @@ static bool check_wifi_status() {
 
 static bool change_wifi(char* ssid, char* password) {
 
-    if (WiFi.status() == WL_CONNECTED) {
+    // Just disconnect.
+    WiFi.disconnect();
 
-        WiFi.disconnect();
-    }
+    // Give it some time to settle..
+    delay(200);
 
     Serial.print("Connecting '");
     Serial.print(WiFi.getHostname());
@@ -345,61 +345,99 @@ static bool change_wifi(char* ssid, char* password) {
 
     WiFi.begin(ssid, password);
 
-    return check_wifi_status();
+    // Give it some time to settle..
+    delay(200);
+
+    if (check_wifi_status()) {
+
+        return true;
+    } else {
+
+        WiFi.begin(ssid, password);
+        // Give it some time to settle..
+        delay(200);
+        return check_wifi_status();
+    }
 }
+
+int wifi_mutex = 0;
 
 static bool init_wifi() {
 
-    if (WiFi.status() == WL_CONNECTED) {
+//TODO there is some racecondition, debugging..
+    if (wifi_mutex != 0) {
 
-        return true;
+        Serial.println("MUTEX: We are already trying to establish a connection..");
+        return false;
     }
+    wifi_mutex = 1;
+
+    // Just make sure we are cleanly disconnected first
+    WiFi.disconnect();
+
+    // Wait long enough even for AP/DHCP during a reconnect
+    delay(20000);
+
+    // We do not want to fall asleep
+    WiFi.setSleep(false);
 
     Serial.print("Starting WiFi on '");
-    // Calling begin() twice, first as a workaround for #2501
-    // and to get access to SSID
+    // Calling begin() twice, as a workaround for #2501 (with some APs the connection seems
+    // be established on the second run only), and to get access to SSID
     WiFi.begin();
-    delay(500);
 
-    WiFi.setHostname(LB_TAG);
+    // Let it all settle
+    delay(2000);
+
+    if (!check_wifi_status()) {
+
+        // now try again (see above)
+        WiFi.begin();
+        // Let it all settle
+        delay(2000);
+    }
+
+    if (WiFi.getHostname() != LB_TAG) {
+        WiFi.setHostname(LB_TAG);
+    }
 
     Serial.print(WiFi.getHostname());
     Serial.println("'...");
 
-    // See if we already have a network defined, if not using default
-    if (WiFi.SSID() != "") {
-
-        Serial.print("Trying to connect to network: '");
-        Serial.print(WiFi.SSID());
-        Serial.println("'...");
-        WiFi.begin();
-    } else {
-        const char* ssid = WIFI_DEFAULT_SSID;
-        const char* password = WIFI_DEFAULT_PASSWORD;
-        if (ssid != "") {
-            Serial.print("Falling back to default network: '");
-            Serial.print(ssid);
-            Serial.println("'...");
-            WiFi.begin(ssid, password);
+    // if the SSID is still empty, we might consider to fall back to a default config
+    if (WiFi.SSID() == "") {
+        Serial.print("Could not read the WiFi-Config, ");
+        if (WIFI_DEFAULT_SSID == "") {
+            Serial.println("and there is no default network defined, giving up.");
+        } else {
+            Serial.print("falling back to the default network: '");
+            Serial.print(WIFI_DEFAULT_SSID);
+            Serial.println("'.");
+            WiFi.begin(WIFI_DEFAULT_SSID, WIFI_DEFAULT_PASSWORD);
         }
     }
 
+    wifi_mutex = 0;
     return check_wifi_status();
 }
 
 //TODO - just for testing yet...
+int mqtt_connection_retry = 5;
+int mqtt_connection_countdown = mqtt_connection_retry;
 static bool init_mqtt() {
 
     if (mqtt_broker == "") {
         return false;
     }
+    mqtt_connection_countdown--;
 
-    if (WiFi.status() != WL_CONNECTED) {
+//    if ((WiFi.status() != WL_CONNECTED) || (mqtt_connection_countdown >= 0)) {
 
-        if (!init_wifi()) {
-            return false;
-        }
-    }
+//        Serial.println("Reconnecting WiFi...");
+//        if (!init_wifi()) {
+//            return false;
+//        }
+//    }
 
     mqtt_client.setServer(mqtt_broker, mqtt_port);
     Serial.print("Connecting to MQTT '");
@@ -410,10 +448,11 @@ static bool init_mqtt() {
     Serial.print(mqtt_port);
     Serial.print("': ");
 
-    delay(500);
+    delay(1000);
 
     if (mqtt_client.connect(LB_TAG, mqtt_user, mqtt_password)) {
 
+        mqtt_connection_countdown = mqtt_connection_retry;
         Serial.println(" success!");
         return true;
     } else {
@@ -424,9 +463,11 @@ static bool init_mqtt() {
 }
 
 static void mqtt_publish(String service_uuid, String uuid, const char* value) {
+    Serial.print("MQTT: ");
     if (!mqtt_client.connected()) {
         if (!init_mqtt()) {
 
+            Serial.println("ERROR, could not establish a connection.");
             return;
         }
     }
@@ -440,7 +481,11 @@ static void mqtt_publish(String service_uuid, String uuid, const char* value) {
     t += service_uuid;
     t += "/";
     t += uuid;
-    mqtt_client.publish(t.c_str(), value);
+    if (mqtt_client.publish(t.c_str(), value)) {
+        Serial.println("successfully published.");
+    } else {
+        Serial.println("publishing aborted.");
+    }
 }
 
 static void init_ble() {
@@ -659,10 +704,25 @@ void setup() {
 }
 
 void loop() {
-    Serial.println("--");
+    Serial.println("");
+    Serial.print("-- ");
+    Serial.print(SUBJECT_NAME);
+    Serial.println(" --");
 //    Serial.print("Main task running on core ");
 //    Serial.print(xPortGetCoreID());
 //    Serial.println(".");
+
+
+    Serial.print("MQTT connection countdown ");
+    Serial.println(mqtt_connection_countdown);
+    if (mqtt_connection_countdown <= 0) {
+
+        Serial.println("Reconnecting WiFi...");
+        if (init_wifi()) {
+            mqtt_connection_countdown = mqtt_connection_retry;
+        }
+    }
+
 
     // set the resolution for all analog sensors
     analogReadResolution(ANALOG_RESOLUTION);
