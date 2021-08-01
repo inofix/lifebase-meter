@@ -3,8 +3,8 @@ if [ $1 == debug ] ; then
     set -x
     shift
 fi
-version="0.4"
-#** Version: 0.4
+version="0.5"
+#** Version: 0.5
 #*  This script prepares a custom configuration for a
 #* certain LifeBase setup with an ESP32 in the `configs`
 #* folder and prepares then the loadable code under
@@ -324,6 +324,13 @@ if [ -f "$configfilename" ] ; then
     mkdir $builddir/$lifebaseprefix-$SUBJECT_NAME
     cp $codedir/*.ino $builddir/$lifebaseprefix-$SUBJECT_NAME/
     mv $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/} $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+    for u in WIFI BLE ; do
+        s=${u}_ENABLE
+        if [ "${!s}" == "on" ] ; then
+            sed -i -e 's;//#define '$u';#define '$u';' \
+                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+        fi
+    done
     for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE EXTRA_SERVICE ; do
         u=${s}_UUID
         if [ "${!s}" == "on" ] ; then
@@ -332,7 +339,7 @@ if [ -f "$configfilename" ] ; then
         fi
     done
     for v in ${vars[@]} ; do
-        sed -i -e 's;^#define '${v%=*}' .*;#define '${v%=*}' '${v#*=}';' \
+        sed -i -e 's;^\([ ]*\)#define '${v%=*}' .*;\1#define '${v%=*}' '${v#*=}';' \
                 $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
     done
 fi

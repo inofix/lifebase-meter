@@ -82,25 +82,25 @@ TaskHandle_t StatusTask;
 //#define LIGHT_SERVICE_UUID "{{ LIGHT_SERVICE_UUID }}"
 #if defined LIGHT_SERVICE_UUID
 /// light sensor includes
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_TSL2561_U.h>
+  #include <Wire.h>
+  #include <Adafruit_Sensor.h>
+  #include <Adafruit_TSL2561_U.h>
 //#include <Adafruit_TSL2591_U.h>
-#define LIGHT_EXPOSURE_UUID "{{ LIGHT_EXPOSURE_UUID }}"
-#define LIGHT_EXPOSURE_I2C_UID 1
-#define LIGHT_EXPOSURE_SENSOR {{ LIGHT_EXPOSURE_SENSOR }}
+  #define LIGHT_EXPOSURE_UUID "{{ LIGHT_EXPOSURE_UUID }}"
+  #define LIGHT_EXPOSURE_I2C_UID 1
+  #define LIGHT_EXPOSURE_SENSOR {{ LIGHT_EXPOSURE_SENSOR }}
 #endif
 
 // air service configuration
 //#define AIR_SERVICE_UUID "{{ AIR_SERVICE_UUID }}"
 #if defined AIR_SERVICE_UUID
-#define AIR_TEMPERATURE_UUID "{{ AIR_TEMPERATURE_UUID }}"
-#define AIR_HUMIDITY_UUID "{{ AIR_HUMIDITY_UUID }}"
+  #define AIR_TEMPERATURE_UUID "{{ AIR_TEMPERATURE_UUID }}"
+  #define AIR_HUMIDITY_UUID "{{ AIR_HUMIDITY_UUID }}"
 /// air sensor includes
-#include <DHT_U.h>
+  #include <DHT_U.h>
 /// air sensor constants
-#define AIR_DHT_PIN {{ AIR_DHT_PIN }}
-#define AIR_DHT_TYPE DHT22
+  #define AIR_DHT_PIN {{ AIR_DHT_PIN }}
+  #define AIR_DHT_TYPE DHT22
 DHT_Unified dht(AIR_DHT_PIN, AIR_DHT_TYPE);
 #endif
 
@@ -108,57 +108,57 @@ DHT_Unified dht(AIR_DHT_PIN, AIR_DHT_TYPE);
 //#define WATER_SERVICE_UUID "{{ WATER_SERVICE_UUID }}"
 #if defined WATER_SERVICE_UUID
 /// the ultrasonic sensor HC-SR04 measuremnt - distance sensor to surface
-#define WATER_CONTAINER_DISTANCE_UUID "{{ WATER_CONTAINER_DISTANCE_UUID }}"
+  #define WATER_CONTAINER_DISTANCE_UUID "{{ WATER_CONTAINER_DISTANCE_UUID }}"
 /// the calculated water level (depth) - distance surface to ground
-#define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
+  #define WATER_CONTAINER_LEVEL_UUID "{{ WATER_CONTAINER_LEVEL_UUID }}"
 /// the maximum possible depth - distance sensor to ground
-#define WATER_CONTAINER_DEPTH_UUID "{{ WATER_CONTAINER_DEPTH_UUID }}"
+  #define WATER_CONTAINER_DEPTH_UUID "{{ WATER_CONTAINER_DEPTH_UUID }}"
 /// min/max sensors - swimming sensors on/off
-#define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
-#define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
+  #define WATER_CONTAINER_MIN_LEVEL_UUID "{{ WATER_CONTAINER_MIN_LEVEL_UUID }}"
+  #define WATER_CONTAINER_MAX_LEVEL_UUID "{{ WATER_CONTAINER_MAX_LEVEL_UUID }}"
 /// actuator - the pump
-#define WATER_CONTAINER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
+  #define WATER_CONTAINER_PUMP_UUID "{{ WATER_CONTAINER_PUMP_UUID }}"
 /// thresholds to be set by the user
-#define WATER_CONTAINER_MIN_CRIT_UUID "{{ WATER_CONTAINER_MIN_CRIT_UUID }}"
-#define WATER_CONTAINER_MIN_WARN_UUID "{{ WATER_CONTAINER_MIN_WARN_UUID }}"
-#define WATER_CONTAINER_MAX_WARN_UUID "{{ WATER_CONTAINER_MAX_WARN_UUID }}"
-#define WATER_CONTAINER_MAX_CRIT_UUID "{{ WATER_CONTAINER_MAX_CRIT_UUID }}"
+  #define WATER_CONTAINER_MIN_CRIT_UUID "{{ WATER_CONTAINER_MIN_CRIT_UUID }}"
+  #define WATER_CONTAINER_MIN_WARN_UUID "{{ WATER_CONTAINER_MIN_WARN_UUID }}"
+  #define WATER_CONTAINER_MAX_WARN_UUID "{{ WATER_CONTAINER_MAX_WARN_UUID }}"
+  #define WATER_CONTAINER_MAX_CRIT_UUID "{{ WATER_CONTAINER_MAX_CRIT_UUID }}"
 
 /// pin config
 //// water container level: HC-SR04
-#define WATER_CONTAINER_LEVEL_TRIGGER_PIN {{ WATER_CONTAINER_LEVEL_TRIGGER_PIN }}
-#define WATER_CONTAINER_LEVEL_ECHO_PIN {{ WATER_CONTAINER_LEVEL_ECHO_PIN }}
+  #define WATER_CONTAINER_LEVEL_TRIGGER_PIN {{ WATER_CONTAINER_LEVEL_TRIGGER_PIN }}
+  #define WATER_CONTAINER_LEVEL_ECHO_PIN {{ WATER_CONTAINER_LEVEL_ECHO_PIN }}
 //// water container swimming on/off sensors
-#define WATER_CONTAINER_LEVEL_MIN_PIN {{ WATER_CONTAINER_LEVEL_MIN_PIN }}
-#define WATER_CONTAINER_LEVEL_MAX_PIN {{ WATER_CONTAINER_LEVEL_MAX_PIN }}
+  #define WATER_CONTAINER_LEVEL_MIN_PIN {{ WATER_CONTAINER_LEVEL_MIN_PIN }}
+  #define WATER_CONTAINER_LEVEL_MAX_PIN {{ WATER_CONTAINER_LEVEL_MAX_PIN }}
 //// water pump pin
-#define WATER_PUMP_PIN {{ WATER_PUMP_PIN=}}
+  #define WATER_PUMP_PIN {{ WATER_PUMP_PIN=}}
 // switch between continuous and interval mode
-#define PUMP_MODE {{ PUMP_MODE }}
+  #define PUMP_MODE {{ PUMP_MODE }}
 // how long should the pump run and pause each time? (1/2 loop length each)
-#define PUMP_LOOP_DELAY {{ PUMP_LOOP_DELAY }}
+  #define PUMP_LOOP_DELAY {{ PUMP_LOOP_DELAY }}
 TaskHandle_t WateringTask;
 #endif
 
 // soil service configuration
 //#define SOIL_SERVICE_UUID "{{ SOIL_SERVICE_UUID }}"
 #if defined SOIL_SERVICE_UUID
-#define SOIL_MOISTURE_UUID "{{ SOIL_MOISTURE_UUID }}"
-#define SOIL_MOISTURE_PIN {{ SOIL_MOISTURE_PIN }}
-#define SOIL_MOISTURE_MIN_CRIT_UUID "{{ SOIL_MOISTURE_MIN_CRIT_UUID }}"
-#define SOIL_MOISTURE_MIN_WARN_UUID "{{ SOIL_MOISTURE_MIN_WARN_UUID }}"
-#define SOIL_MOISTURE_MAX_WARN_UUID "{{ SOIL_MOISTURE_MAX_WARN_UUID }}"
-#define SOIL_MOISTURE_MAX_CRIT_UUID "{{ SOIL_MOISTURE_MAX_CRIT_UUID }}"
+  #define SOIL_MOISTURE_UUID "{{ SOIL_MOISTURE_UUID }}"
+  #define SOIL_MOISTURE_PIN {{ SOIL_MOISTURE_PIN }}
+  #define SOIL_MOISTURE_MIN_CRIT_UUID "{{ SOIL_MOISTURE_MIN_CRIT_UUID }}"
+  #define SOIL_MOISTURE_MIN_WARN_UUID "{{ SOIL_MOISTURE_MIN_WARN_UUID }}"
+  #define SOIL_MOISTURE_MAX_WARN_UUID "{{ SOIL_MOISTURE_MAX_WARN_UUID }}"
+  #define SOIL_MOISTURE_MAX_CRIT_UUID "{{ SOIL_MOISTURE_MAX_CRIT_UUID }}"
 // MIN/MAX moisture depend on the plant and soil and we might even want
 // to set it dynamically on the device and store it.
 //TODO: Edit from the config script..
 // default minimum of soil moisture (or when to water / warn / etc.)
-#define SOIL_MOISTURE_MIN_CRIT_INIT 0
-#define SOIL_MOISTURE_MIN_WARN_INIT 0
+  #define SOIL_MOISTURE_MIN_CRIT_INIT 0
+  #define SOIL_MOISTURE_MIN_WARN_INIT 0
 // default maximum of soil moisture (or when to stop watering or open valve
 // / warn / etc.)
-#define SOIL_MOISTURE_MAX_WARN_INIT 100
-#define SOIL_MOISTURE_MAX_CRIT_INIT 100
+  #define SOIL_MOISTURE_MAX_WARN_INIT 100
+  #define SOIL_MOISTURE_MAX_CRIT_INIT 100
 // The sensor used here is a 'Capacitive Soil Moisture Sensor v1.2' from
 // diymore.cc. We protected it against the permanent exposure in a
 // potentially wet and unfriendly environment with lacquer (electronics
@@ -171,39 +171,36 @@ TaskHandle_t WateringTask;
 //   - in complete isolation: 56368 (0%)
 //TODO: verify or specify for differnt soil types..
 //TODO: Edit from the config script..
-#define SOIL_MOISTURE_ABSOLUTE_MIN 56399
-#define SOIL_MOISTURE_ABSOLUTE_MAX 31488
+  #define SOIL_MOISTURE_ABSOLUTE_MIN 56399
+  #define SOIL_MOISTURE_ABSOLUTE_MAX 31488
 // see _water.ino for the concrete MAX/MIN values..
 #endif
 
 // extra service configuration
 //#define EXTRA_SERVICE_UUID "{{ EXTRA_SERVICE_UUID }}"
 #if defined EXTRA_SERVICE_UUID
-#define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
-#define EXTRA_LEAK_PIN {{ EXTRA_LEAK_PIN }}
+  #define EXTRA_LEAK_UUID "{{ EXTRA_LEAK_UUID }}"
+  #define EXTRA_LEAK_PIN {{ EXTRA_LEAK_PIN }}
 #endif
 
+// WiFi
+//#define WIFI
+
+#if defined WIFI
 // WiFi includes
-#include <WiFi.h>
+  #include <WiFi.h>
 
 // WiFi-MQTT includes
-#include <PubSubClient.h>
+  #include <PubSubClient.h>
 
-// BLE includes
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include <BLE2902.h>
-#include <BLE2904.h>
+  #define WIFI_DEFAULT_SSID "{{ WIFI_DEFAULT_SSID }}"
+  #define WIFI_DEFAULT_PASSWORD "{{ WIFI_DEFAULT_PASSWORD }}"
 
-#define WIFI_DEFAULT_SSID "{{ WIFI_DEFAULT_SSID }}"
-#define WIFI_DEFAULT_PASSWORD "{{ WIFI_DEFAULT_PASSWORD }}"
-
-#define WIFI_MQTT_DEFAULT_BROKER "{{ WIFI_MQTT_DEFAULT_BROKER }}"
-#define WIFI_MQTT_DEFAULT_PORT {{ WIFI_MQTT_DEFAULT_PORT }}
-#define WIFI_MQTT_DEFAULT_NAMESPACE "{{ WIFI_MQTT_DEFAULT_NAMESPACE }}"
-#define WIFI_MQTT_DEFAULT_USER "{{ WIFI_MQTT_DEFAULT_USER }}"
-#define WIFI_MQTT_DEFAULT_PASSWORD "{{ WIFI_MQTT_DEFAULT_PASSWORD }}"
+  #define WIFI_MQTT_DEFAULT_BROKER "{{ WIFI_MQTT_DEFAULT_BROKER }}"
+  #define WIFI_MQTT_DEFAULT_PORT {{ WIFI_MQTT_DEFAULT_PORT }}
+  #define WIFI_MQTT_DEFAULT_NAMESPACE "{{ WIFI_MQTT_DEFAULT_NAMESPACE }}"
+  #define WIFI_MQTT_DEFAULT_USER "{{ WIFI_MQTT_DEFAULT_USER }}"
+  #define WIFI_MQTT_DEFAULT_PASSWORD "{{ WIFI_MQTT_DEFAULT_PASSWORD }}"
 
 // WiFi variables
 //TODO Make this configurable over BLE (and store it over reboot)
@@ -225,8 +222,20 @@ char* mqtt_user = WIFI_MQTT_DEFAULT_USER;
 char* mqtt_password = WIFI_MQTT_DEFAULT_PASSWORD;
 
 PubSubClient mqtt_client(wifi_client);
+#endif
 
-// BLE variables
+// BLE
+//#define BLE
+
+// BLE includes
+#if defined BLE
+  #include <BLEDevice.h>
+  #include <BLEUtils.h>
+  #include <BLEServer.h>
+  #include <BLE2902.h>
+  #include <BLE2904.h>
+  
+  // BLE variables
 BLEServer* ble_server = NULL;
 BLECharacteristic* subject_uuid_characteristic = NULL;
 BLECharacteristic* subject_name_characteristic = NULL;
@@ -235,14 +244,14 @@ BLECharacteristic* subject_type_id_characteristic = NULL;
 BLECharacteristic* subject_warn_characteristic = NULL;
 BLECharacteristic* subject_health_characteristic = NULL;
 BLECharacteristic* subject_identify_characteristic = NULL;
-#if defined LIGHT_EXPOSURE_UUID
+  #if defined LIGHT_EXPOSURE_UUID
 BLECharacteristic* light_exposure_characteristic = NULL;
-#endif
-#if defined AIR_SERVICE_UUID
+  #endif
+  #if defined AIR_SERVICE_UUID
 BLECharacteristic* air_temperature_characteristic = NULL;
 BLECharacteristic* air_humidity_characteristic = NULL;
-#endif
-#if defined WATER_SERVICE_UUID
+  #endif
+  #if defined WATER_SERVICE_UUID
 BLECharacteristic* water_container_level_characteristic = NULL;
 BLECharacteristic* water_container_depth_characteristic = NULL;
 BLECharacteristic* water_container_distance_characteristic = NULL;
@@ -253,20 +262,22 @@ BLECharacteristic* water_container_level_max_crit_characteristic = NULL;
 BLECharacteristic* water_container_min_level_characteristic = NULL;
 BLECharacteristic* water_container_max_level_characteristic = NULL;
 BLECharacteristic* water_container_pump_characteristic = NULL;
-#endif
-#if defined SOIL_SERVICE_UUID
+  #endif
+  #if defined SOIL_SERVICE_UUID
 BLECharacteristic* soil_moisture_characteristic = NULL;
 BLECharacteristic* soil_moisture_min_crit_characteristic = NULL;
 BLECharacteristic* soil_moisture_min_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_warn_characteristic = NULL;
 BLECharacteristic* soil_moisture_max_crit_characteristic = NULL;
-#endif
-#if defined EXTRA_SERVICE_UUID
+  #endif
+  #if defined EXTRA_SERVICE_UUID
 BLECharacteristic* extra_leak_characteristic = NULL;
-#endif
+  #endif
 bool device_connected = false;
 bool old_device_connected = false;
+//TODO still in use?
 uint32_t value = 0;
+#endif
 
 // globally accessible air temperature (used in water distance..)
 // set default to 20°C in case the air service is not available
@@ -303,6 +314,7 @@ static void init_sensors() {
     Serial.println("done.");
 }
 
+#if defined BLE
 class LBMServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* ble_server) {
       device_connected = true;
@@ -312,7 +324,9 @@ class LBMServerCallbacks: public BLEServerCallbacks {
       device_connected = false;
     }
 };
+#endif
 
+#if defined WIFI
 static bool check_wifi_status() {
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -487,7 +501,9 @@ static void mqtt_publish(String service_uuid, String uuid, const char* value) {
         Serial.println("publishing aborted.");
     }
 }
+#endif
 
+#if defined BLE
 static void init_ble() {
 
     BLEDevice::init(LB_TAG);
@@ -523,21 +539,21 @@ static void init_ble() {
             SUBJECT_LED_IDENTIFY_UUID, BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE
     );
-#if defined LIGHT_SERVICE_UUID
+  #if defined LIGHT_SERVICE_UUID
     init_ble_light(ble_server);
-#endif
-#if defined AIR_SERVICE_UUID
+  #endif
+  #if defined AIR_SERVICE_UUID
     init_ble_air(ble_server);
-#endif
-#if defined WATER_SERVICE_UUID
+  #endif
+  #if defined WATER_SERVICE_UUID
     init_ble_water(ble_server);
-#endif
-#if defined SOIL_SERVICE_UUID
+  #endif
+  #if defined SOIL_SERVICE_UUID
     init_ble_soil(ble_server);
-#endif
-#if defined EXTRA_SERVICE_UUID
+  #endif
+  #if defined EXTRA_SERVICE_UUID
     init_ble_extra(ble_server);
-#endif
+  #endif
 
 //    subject_uuid_characteristic->addDescriptor(new BLE2902());
     subject_uuid_characteristic->setValue(SUBJECT_UUID);
@@ -575,6 +591,7 @@ static void set_ble_characteristic(BLECharacteristic* characteristic, std::strin
         old_device_connected = device_connected;
     }
 }
+#endif
 
 void status_loop(void* parameters) {
 
@@ -588,6 +605,7 @@ void status_loop(void* parameters) {
 
 void status_led() {
 
+#if defined BLE
     // in case the user searches the lifebasemeter in the field
     int identify = strtol(
         subject_identify_characteristic->getValue().c_str(), NULL, 10);
@@ -607,6 +625,8 @@ void status_led() {
             delay(1);
         }
     }
+#endif
+#if defined WIFI
     // if wifi is not connected, show a quick warning
     if (WiFi.status() != WL_CONNECTED) {
         for (int i = 0; i < 4 ; i++) {
@@ -620,6 +640,7 @@ void status_led() {
             delay(100);
         }
     }
+#endif
 
     // under 'unstable conditions' show a blinking warning
     if (water_flow_force_stop > 0) {
@@ -641,7 +662,9 @@ void status_led() {
     } else {
         // under 'stable conditions', just show the status
         //TODO at the moment the health is only set by the user..
+#if defined BLE
         health = subject_health_characteristic->getValue().c_str();
+#endif
         Serial.print("The overall health condition of this setup is ");
         if (strcmp(health, SUBJECT_HEALTH_GOOD) == 0) {
             Serial.print("good");
@@ -677,9 +700,13 @@ void status_led() {
 void setup() {
 
     Serial.begin(115200);
+#if defined BLE
     init_ble();
+#endif
+#if defined WIFI
     //TODO see if we need to put this to 'status_loop()' in case connection is lost..
     init_wifi();
+#endif
     init_sensors();
 
     ledcSetup(SUBJECT_LED_CHANNEL_RED, SUBJECT_LED_FREQUENCY,
@@ -713,6 +740,7 @@ void loop() {
 //    Serial.println(".");
 
 
+#if defined WIFI
     Serial.print("MQTT connection countdown ");
     Serial.println(mqtt_connection_countdown);
     if (mqtt_connection_countdown <= 0) {
@@ -722,7 +750,7 @@ void loop() {
             mqtt_connection_countdown = mqtt_connection_retry;
         }
     }
-
+#endif
 
     // set the resolution for all analog sensors
     analogReadResolution(ANALOG_RESOLUTION);
@@ -745,8 +773,10 @@ void loop() {
     get_extra_info();
 #endif
 
+#if defined WIFI
     // report the overal health status of this setup
     mqtt_publish(SUBJECT_SERVICE_UUID, SUBJECT_LED_HEALTH_UUID, health);
+#endif
 
     // now, just wait for the next loop
     delay(main_loop_delay);

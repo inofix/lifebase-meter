@@ -41,6 +41,7 @@ static void init_extra() {
     attachInterrupt(EXTRA_LEAK_PIN, leak_isr, FALLING);
 }
 
+  #if defined BLE
 static void init_ble_extra(BLEServer* ble_server) {
 
     BLEService *extra_service = ble_server->createService(EXTRA_SERVICE_UUID);
@@ -52,6 +53,7 @@ static void init_ble_extra(BLEServer* ble_server) {
     extra_leak_characteristic->addDescriptor(new BLE2902());
     extra_service->start();
 }
+  #endif
 
 static void get_extra_info() {
 
@@ -61,16 +63,24 @@ static void get_extra_info() {
             water_flow_force_stop--;
         }
         Serial.println("There was no water detected outside the system!");
+  #if defined BLE
         set_ble_characteristic(extra_leak_characteristic, "0");
+  #endif
+  #if defined WIFI
         mqtt_publish(EXTRA_SERVICE_UUID, EXTRA_LEAK_UUID, "0");
+  #endif
     } else {
         if (!is_leaked) {
             is_leaked = true;
             water_flow_force_stop++;
         }
         Serial.println("Warning: There was water detected outside the system!");
+  #if defined BLE
         set_ble_characteristic(extra_leak_characteristic, "1");
+  #endif
+  #if defined WIFI
         mqtt_publish(EXTRA_SERVICE_UUID, EXTRA_LEAK_UUID, "1");
+  #endif
     }
 }
 

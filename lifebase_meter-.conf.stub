@@ -10,7 +10,6 @@ SUBJECT_TYPE_UUID=""
 ###### Connectivity ######
 BLE_ENABLE="on"
 WIFI_ENABLE="off"
-WIFI_MQTT_ENABLE="off"
 
 WIFI_DEFAULT_SSID=""
 WIFI_DEFAULT_PASSWORD=""
@@ -103,4 +102,4 @@ EXTRA_SERVICE_UUID="54050000-e337-46ca-9690-cdd6d309e7b1"
 EXTRA_LEAK_UUID="54050010-e337-46ca-9690-cdd6d309e7b1"
 
 ## only used internally for compatibility checks
-config_version="0.4"
+config_version="0.5"

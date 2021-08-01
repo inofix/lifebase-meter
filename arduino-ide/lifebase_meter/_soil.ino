@@ -26,6 +26,7 @@ static void init_soil() {
     pinMode(SOIL_MOISTURE_PIN, INPUT);
 }
 
+  #if defined BLE
 static void init_ble_soil(BLEServer* ble_server) {
 
     BLEService *soil_service = ble_server->createService(SOIL_SERVICE_UUID);
@@ -65,6 +66,7 @@ static void init_ble_soil(BLEServer* ble_server) {
     soil_moisture_max_crit_characteristic->addDescriptor(new BLE2902());
     soil_service->start();
 }
+  #endif
 
 static bool is_too_wet = false;
 static bool is_too_dry = false;
@@ -152,6 +154,8 @@ static int read_soil_moisture_percentage(int pin, int abs_min, int abs_max,
 
 static void get_soil_info() {
 
+  //TODO get at least the initial values from the config...
+  #if defined BLE
     int soil_moisture_min_crit = strtol(
             soil_moisture_min_crit_characteristic->getValue().c_str(), NULL, 10);
     int soil_moisture_min_warn = strtol(
@@ -160,6 +164,12 @@ static void get_soil_info() {
             soil_moisture_max_warn_characteristic->getValue().c_str(), NULL, 10);
     int soil_moisture_max_crit = strtol(
             soil_moisture_max_crit_characteristic->getValue().c_str(), NULL, 10);
+  #else
+    int soil_moisture_min_crit = 0;
+    int soil_moisture_min_warn = 0;
+    int soil_moisture_max_warn = 100;
+    int soil_moisture_max_crit = 100;
+  #endif
 
     int soil_moisture = read_soil_moisture_percentage(SOIL_MOISTURE_PIN,
         SOIL_MOISTURE_ABSOLUTE_MIN, SOIL_MOISTURE_ABSOLUTE_MAX,
@@ -167,8 +177,12 @@ static void get_soil_info() {
         soil_moisture_max_warn, soil_moisture_max_crit);
     char soil_moisture_chars[4];
     dtostrf(soil_moisture, 3, 0, soil_moisture_chars);
+  #if defined BLE
     set_ble_characteristic(soil_moisture_characteristic, soil_moisture_chars);
+  #endif
+  #if defined WIFI
     mqtt_publish(SOIL_SERVICE_UUID, SOIL_MOISTURE_UUID, soil_moisture_chars);
+  #endif
 }
 
 #endif

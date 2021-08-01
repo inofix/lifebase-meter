@@ -21,11 +21,11 @@
 */
 
 #if defined LIGHT_SERVICE_UUID
-#if LIGHT_EXPOSURE_SENSOR == 2561
+  #if LIGHT_EXPOSURE_SENSOR == 2561
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, LIGHT_EXPOSURE_I2C_UID);
-#elif LIGHT_EXPOSURE_SENSOR == 2591
+  #elif LIGHT_EXPOSURE_SENSOR == 2591
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591);
-#endif
+  #endif
 
 static void init_light() {
 
@@ -36,6 +36,7 @@ static void init_light() {
     tsl.begin();
 }
 
+  #if defined BLE
 static void init_ble_light(BLEServer* ble_server) {
 
     BLEService *light_service = ble_server->createService(LIGHT_SERVICE_UUID);
@@ -50,6 +51,7 @@ static void init_ble_light(BLEServer* ble_server) {
     light_exposure_characteristic->addDescriptor(desc0);
     light_service->start();
 }
+  #endif
 
 //TODO: figure out how to display light exposure
 //        - let's use a custom defined percentage value for now
@@ -65,8 +67,12 @@ static void get_light_info() {
 
     char light_chars[6];
     dtostrf(light_value, 5, 0, light_chars);
+  #if defined BLE
     set_ble_characteristic(light_exposure_characteristic, light_chars);
+  #endif
+  #if defined WIFI
     mqtt_publish(LIGHT_SERVICE_UUID, LIGHT_EXPOSURE_UUID, light_chars);
+  #endif
     Serial.print("The current light exposure is ");
     Serial.print(light_value);
     Serial.println(" Lux");

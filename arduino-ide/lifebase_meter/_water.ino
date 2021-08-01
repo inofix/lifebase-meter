@@ -55,6 +55,7 @@ static void init_water() {
     pinMode(WATER_PUMP_PIN, OUTPUT);
 }
 
+  #if defined BLE
 static void init_ble_water(BLEServer* ble_server) {
 
     BLEService *water_service = ble_server->createService(BLEUUID(WATER_SERVICE_UUID), 38, 0);
@@ -161,6 +162,7 @@ static void init_ble_water(BLEServer* ble_server) {
 
     water_service->start();
 }
+#endif
 
 void watering_loop(void* parameters) {
     for (;;) {
@@ -218,8 +220,12 @@ static void pump_water(int pin, int loop_delay) {
 static void get_water_info() {
 
     // first of all, report whether we are pumping
+  #if defined BLE
     set_ble_characteristic(water_container_pump_characteristic, pump_state);
+  #endif
+  #if defined WIFI
     mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_PUMP_UUID, pump_state);
+  #endif
 
     // measure the distance to the water surface and add the depth
 
@@ -239,10 +245,15 @@ static void get_water_info() {
     float water_distance_value = water_distance_duration * sound_velocity_air / 1000000;
 
     if (water_distance_value > 0) {
+  #if defined BLE
         float water_depth = strtof(water_container_depth_characteristic->getValue().c_str(), NULL) - water_distance_value;
 
         float crit_threshhold = strtof(
             water_container_level_min_crit_characteristic->getValue().c_str(), NULL);
+  #else
+        float water_depth = 0;
+        float crit_threshhold = 0;
+  #endif
 //disabled for now..
 //    if (water_depth < crit_threshhold) {
 //        if (!is_crit_low) {
@@ -263,12 +274,20 @@ static void get_water_info() {
         Serial.println("m.");
         char water_dist_chars[7];
         dtostrf(water_distance_value, 6, 2, water_dist_chars);
+  #if defined WIFI
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_DISTANCE_UUID, water_dist_chars);
+  #endif
+  #if defined BLE
         set_ble_characteristic(water_container_distance_characteristic, water_dist_chars);
+  #endif
         char water_depth_chars[7];
         dtostrf(water_depth, 6, 2, water_depth_chars);
+  #if defined WIFI
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_LEVEL_UUID, water_depth_chars);
+  #endif
+  #if defined BLE
         set_ble_characteristic(water_container_level_characteristic, water_depth_chars);
+  #endif
     } else {
         Serial.println("Error reading the water level distance.");
     }
@@ -279,16 +298,24 @@ static void get_water_info() {
             is_lower_than = false;
             water_flow_force_stop--;
         }
+  #if defined BLE
         set_ble_characteristic(water_container_min_level_characteristic, "1");
+  #endif
+  #if defined WIFI
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_MIN_LEVEL_UUID, "1");
+  #endif
         Serial.println("The container is full enough for the watering pump.");
     } else {
         if (!is_lower_than) {
             is_lower_than = true;
             water_flow_force_stop++;
         }
+  #if defined BLE
         set_ble_characteristic(water_container_min_level_characteristic, "0");
+  #endif
+  #if defined WIFI
         mqtt_publish(WATER_SERVICE_UUID, WATER_CONTAINER_MIN_LEVEL_UUID, "0");
+  #endif
         Serial.println("WARNING: please do fill the container!");
     }
 // currently disabled

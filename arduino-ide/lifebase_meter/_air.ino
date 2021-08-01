@@ -26,6 +26,7 @@ static void init_air() {
     dht.begin();
 }
 
+  #if defined BLE
 static void init_ble_air(BLEServer* ble_server) {
 
     // https://www.bluetooth.com/specifications/gatt/characteristics/
@@ -51,7 +52,7 @@ static void init_ble_air(BLEServer* ble_server) {
     air_humidity_characteristic->addDescriptor(desc1);
     air_service->start();
 }
-
+  #endif
 
 //TODO: it is probably more a problem of the device than the view...
 //TODO:   - farenheit vs. celsius? deliver both?
@@ -76,8 +77,12 @@ static void get_dht_info() {
         Serial.print(air_temperature);
         Serial.println("°C.");
         dtostrf(air_temperature, 3, 1, air_chars);
+  #if defined BLE
         set_ble_characteristic(air_temperature_characteristic, air_chars);
+  #endif
+  #if defined WIFI
         mqtt_publish(AIR_SERVICE_UUID, AIR_TEMPERATURE_UUID, air_chars);
+  #endif
     }
     dht.humidity().getSensor(&sensor);
     dht.humidity().getEvent(&event);
@@ -88,8 +93,12 @@ static void get_dht_info() {
         Serial.print(event.relative_humidity);
         Serial.println("%");
         dtostrf(event.relative_humidity, 3, 1, air_chars);
+  #if defined BLE
         set_ble_characteristic(air_humidity_characteristic, air_chars);
+  #endif
+  #if defined WIFI
         mqtt_publish(AIR_SERVICE_UUID, AIR_HUMIDITY_UUID, air_chars);
+  #endif
     }
 }
 
