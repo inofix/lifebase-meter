@@ -306,41 +306,54 @@ else
             -e 's/WIFI_MQTT_DEFAULT_PASSWORD=""/WIFI_MQTT_DEFAULT_PASSWORD="'$mqtt_password'"/' \
                 $configexamplename > $configfilename
 fi
-#TODO fix missing, e.g. BLE/WIFI/MQTT enable/disable
 
 # here we generate the code for each device
 if [ -f "$configfilename" ] ; then
 
-    vars=( $(awk '/^[_0-9a-zA-Z]**="?[-_+#0-9a-zA-Z]*"?$/ {print $0}' $configfilename) )
+    declare -A vars
 
-    for v in ${vars[@]} ; do
-        eval $v
+    oIFS=$IFS
+    IFS="
+"
+    for l in $(awk '/^[_0-9a-zA-Z]**=.*$/ {print $0}' $configfilename) ; do
+        k=${l%=*}
+        v=${l##*=}
+        vars[$k]="$v"
     done
+    IFS=$oIFS
 
-    if [ -d "$builddir/$lifebaseprefix-$SUBJECT_NAME" ] ; then
-        rm $builddir/$lifebaseprefix-$SUBJECT_NAME/*
-        rmdir $builddir/$lifebaseprefix-$SUBJECT_NAME
+    if [ -d "$builddir/$lifebaseprefix-$subjectname" ] ; then
+        rm $builddir/$lifebaseprefix-$subjectname/*
+        rmdir $builddir/$lifebaseprefix-$subjectname
     fi
-    mkdir $builddir/$lifebaseprefix-$SUBJECT_NAME
-    cp $codedir/*.ino $builddir/$lifebaseprefix-$SUBJECT_NAME/
-    mv $builddir/$lifebaseprefix-$SUBJECT_NAME/${mainfile##*/} $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+    mkdir $builddir/$lifebaseprefix-$subjectname
+    cp $codedir/*.ino $builddir/$lifebaseprefix-$subjectname/
+    mv $builddir/$lifebaseprefix-$subjectname/${mainfile##*/} $builddir/$lifebaseprefix-$subjectname/$lifebaseprefix-$subjectname.ino
     for u in WIFI BLE ; do
         s=${u}_ENABLE
-        if [ "${!s}" == "on" ] ; then
+        if [ "${vars[$s]}" == "on" ] ; then
             sed -i -e 's;//#define '$u';#define '$u';' \
-                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+                $builddir/$lifebaseprefix-$subjectname/$lifebaseprefix-$subjectname.ino
         fi
     done
     for s in LIGHT_SERVICE AIR_SERVICE WATER_SERVICE SOIL_SERVICE EXTRA_SERVICE ; do
         u=${s}_UUID
-        if [ "${!s}" == "on" ] ; then
+        if [ "${vars[$s]}" == "on" ] ; then
             sed -i -e 's;//#define '$u';#define '$u';' \
-                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+                $builddir/$lifebaseprefix-$subjectname/$lifebaseprefix-$subjectname.ino
         fi
     done
-    for v in ${vars[@]} ; do
-        sed -i -e 's;^\([ ]*\)#define '${v%=*}' .*;\1#define '${v%=*}' '${v#*=}';' \
-                $builddir/$lifebaseprefix-$SUBJECT_NAME/$lifebaseprefix-$SUBJECT_NAME.ino
+    # possible delimiters for `sed` in case one is already used in the string itself:
+    ds=( "|" ";" ":" "," "." "#" "~" "%" "&" "/" "-" "+" "=" )
+    for k in ${!vars[@]} ; do
+        for d in ${ds[@]} ; do
+            # test each against the value and break on the first negative match
+            if [ "${vars[$k]/*$d*/XXX}" != "XXX" ] || [ "${vars[$k]}" == "XXX" ] ; then
+                break
+            fi
+        done
+        sed -i -e "s$d"'^\([ ]*\)#define '"${k}"' .*'"$d"'\1#define '"${k} ${vars[$k]}$d" \
+                $builddir/$lifebaseprefix-$subjectname/$lifebaseprefix-$subjectname.ino
     done
 fi
 
