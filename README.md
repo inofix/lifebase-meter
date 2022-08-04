@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is an skeleton implementation of an environment meter
+This project is a skeleton implementation of an environment meter
 that can be used to monitor (and adapt) the surrounding of living
 systems.
 
@@ -30,8 +30,12 @@ we recommend using this solution:
 
   * Install the Arduino IDE
   * Add the board
-    * Go to: "Tools", "Board"
-    * Choose:
+    * Add an additional boards manager
+      * From "Files" choose "Preferences"
+      * Under "Additional Boards Manager URLs" enter URL: `https://dl.espressif.com/dl/package_esp32_index.json`
+    * Now go to: "Tools", "Board"
+    * From "Boards Manager" choose "ESP32 Arduino"
+    * Exit this level and then choose the following from the resp. menu:
       * Board: "ESP32 Dev Module"
         * Partition Scheme: "Minimal SPIFFS" (otherwise the sketch is too big)
       * (do not use "DOIT ESP32 DEVKIT V1" as there are no options available here)
@@ -40,7 +44,6 @@ we recommend using this solution:
     * Choose:
       * "Adafruit Unified Sensor"[11](#11)
       * "DHT sensor library"[12](#12)
-      * "ESP32"
       * "ESP32 BLE Arduino"[9](#9)
       * "Adafruit TSL2591" (or TSL2561 resp.)
 
@@ -76,7 +79,7 @@ the script.
 
 Change to the top folder of your project, where you will find both
 files, the script `create_config.sh` and an empty config
-`lifebase_meter-example.conf`. You can execute the script to get some
+`lifebase_meter-.conf.stub`. You can execute the script to get some
 idea with the help option:
 
     $ ./create_config.sh --help
