@@ -22,11 +22,12 @@ The current standard setup consists of just the following sensors
 ### Arduino IDE
 
 As my toolchain with the ESP IDF[4](#4) stopped working at
-a certain point. I tried out the Arduino[8](#8) IDE which
-immediately just did work.
-As I am not very happy with this solution, I will
-try again with the ESP IDF later, but for now
-we recommend using this solution:
+a certain point, I reimplemented it for the Arduino[8](#8) IDE
+just to see whether it would work there, and it
+immediately just did.
+Over the last year I was asked to do workshops with children on that
+basis and as it is probably easier to start with Arduino, I think
+we'll just stay with this solution:
 
   * Install the Arduino IDE
   * Add the board
