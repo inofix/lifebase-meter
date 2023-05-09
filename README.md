@@ -26,7 +26,8 @@ a certain point, I reimplemented it for the Arduino[8](#8) IDE
 just to see whether it would work there, and it
 immediately just did.
 Over the last year I was asked to do workshops with children on that
-basis and as it is probably easier to start with Arduino, I think
+basis and as it is probably easier to start such a thing with Arduino
+(and last but not least there is the arduino-cli[15](#15)), I think
 we'll just stay with this solution:
 
   * Install the Arduino IDE
@@ -136,3 +137,4 @@ Lux, and their needs also differ between species and life phases.
   1. <a name="12" href="https://github.com/adafruit/DHT-sensor-library">https://github.com/adafruit/DHT-sensor-library</a>
   1. <a name="13" href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html">https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html</a>
   1. <a name="14" href="https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md">https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md</a>
+  1. <a name="15" href="https://arduino.github.io/arduino-cli/">https://arduino.github.io/arduino-cli/<\a>
